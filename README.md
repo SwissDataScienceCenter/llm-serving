@@ -15,6 +15,10 @@ The chart only creates custom resources that rely on these systems being install
 
 ## Usage
 
+The repository contains a [`justfile`](justfile) to automate routine commands.
+You may use it as reference, or run it with `just` (by default, just will list available recipes).
+See [CONTRIBUTING.md](CONTRIBUTING.md) for more information.
+
 ### Helm (Kubernetes)
 
 Make sure you have helm and kubectl installed and that you're connected via VPN.
@@ -84,7 +88,8 @@ models:
 
 ### Secrets
 
-Supply your deployment's secrets in your `values.<env>.yaml`. This repo's shared-deployment values files are kept encrypted with sops+age; if you maintain those, see [CONTRIBUTING.md](CONTRIBUTING.md#secrets).
+You may supply your encrypted deployment's secrets in `values.<env>.yaml`.
+This is set up to encrypt values with sops+age; if you maintain those, see [CONTRIBUTING.md](CONTRIBUTING.md#secrets).
 
 ### Manual installation steps
 
