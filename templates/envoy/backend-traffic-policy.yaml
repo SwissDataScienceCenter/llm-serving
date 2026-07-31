@@ -1,0 +1,45 @@
+{{- $found := false }}
+{{- range $key, $val := .Values.models }}
+  {{- if and $val.rateLimit $val.rateLimit.enabled }}
+    {{- $found = true }}
+  {{- end }}
+{{- end }}
+{{- if and .Values.envoy.enabled $found}}
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: BackendTrafficPolicy
+metadata:
+  name: model-rate-limit-policy
+  namespace: {{ .Release.Namespace }}
+spec:
+  targetRefs:
+    - name: {{ include "envoy.fullname" . }}
+      kind: Gateway
+      group: gateway.networking.k8s.io
+  rateLimit:
+    type: Global
+    global:
+      rules:
+  {{- range $name, $model := .Values.models }}
+    {{- if and $model.rateLimit $model.rateLimit.enabled }}
+        - clientSelectors:
+            - headers:
+                - name: x-sub
+                  type: Distinct
+                - name: x-ai-eg-model
+                  type: Distinct
+          limit:
+            requests: {{ $model.rateLimit.requests | default 500000 }}
+            unit: {{ $model.rateLimit.unit | default "Hour" }}
+          cost:
+            request:
+              from: Number
+              number: 0 # Set to 0 so only token usage counts
+            response:
+              from: Metadata
+              metadata:
+                namespace: io.envoy.ai_gateway
+                key: llm_total_token # uses tokens from responses as unit
+    {{- end }}
+  {{- end }}
+
+{{- end }}

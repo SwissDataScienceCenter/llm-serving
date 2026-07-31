@@ -1,0 +1,26 @@
+{{- if .Values.envoy.enabled }}
+  {{- range $name, $model := .Values.models }}
+    {{- if or $model.internal (and (not $model.internal) $model.apiUrl) }}
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: Backend
+metadata:
+  name: {{ include "envoy.backendName" (merge (dict "modelName" $name) $) }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    app: model-{{ $name }}
+    release: {{ $.Release.Name }}
+spec:
+  endpoints:
+      {{- if $model.internal }}
+    - fqdn:
+        hostname: model-{{ $name }}.{{ $.Release.Namespace }}.svc.cluster.local
+        port: 80
+      {{- else if $model.apiUrl }}
+    - fqdn:
+        hostname: {{ $model.apiUrl | replace "https://" "" | replace "http://" "" }}
+        port: 443
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}

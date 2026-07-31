@@ -1,0 +1,42 @@
+{{- if .Values.envoy.enabled }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: {{ include "envoy.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  gatewayClassName: {{ .Values.envoy.gatewayClass.name | default (include "envoy.fullname" .) }}
+  listeners:
+    - name: https-gateway
+      protocol: HTTPS
+      port: 443
+      hostname: gateway.{{ .Values.envoy.baseDomain }}
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: {{ include "envoy.fullname" . }}-wildcard-https
+    - name: https-openwebui
+      protocol: HTTPS
+      port: 443
+      hostname: openwebui.{{ .Values.envoy.baseDomain }}
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: {{ include "envoy.fullname" . }}-wildcard-https
+    - name: https-authentik
+      protocol: HTTPS
+      port: 443
+      hostname: authentik.{{ .Values.envoy.baseDomain }}
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: {{ include "envoy.fullname" . }}-wildcard-https
+  infrastructure:
+    parametersRef:
+      group: gateway.envoyproxy.io
+      kind: EnvoyProxy
+      name: {{ include "envoy.fullname" . }}
+{{- end }}

@@ -1,0 +1,34 @@
+{{- if .Values.envoy.enabled }}
+apiVersion: aigateway.envoyproxy.io/v1alpha1
+kind: AIGatewayRoute
+metadata:
+  name: {{ include "envoy.fullname" . }}-models
+  namespace: {{ .Release.Namespace }}
+  labels:
+    release: {{ .Release.Name }}
+spec:
+  parentRefs:
+    - name: {{ include "envoy.fullname" . }}
+      kind: Gateway
+      group: gateway.networking.k8s.io
+      sectionName: https-gateway
+  llmRequestCosts:
+    - metadataKey: llm_total_token
+      type: TotalToken
+    - metadataKey: llm_input_token
+      type: InputToken
+    - metadataKey: llm_output_token
+      type: OutputToken
+  rules:
+  {{- range $name, $model := .Values.models }}
+    {{- if or $model.internal (and (not $model.internal) $model.apiUrl) }}
+    - matches:
+        - headers:
+            - type: Exact
+              name: x-ai-eg-model
+              value: {{ $model.fullName }}
+      backendRefs:
+        - name: {{ include "envoy.backendName" (merge (dict "modelName" $name) $) }}
+    {{- end }}
+  {{- end }}
+{{- end }}

@@ -1,0 +1,143 @@
+envoy:
+  enabled: true
+  name: vllm
+  baseDomain:
+  clusterissuer: letsencrypt
+  gatewayclass:
+  clientBufferLimit: 50Mi
+  security:
+    jwksUri:
+  gatewayClass:
+    enabled: false
+    name:
+  telemetry:
+    enabled: false
+    # OpenMeter API endpoint for billing (required when telemetry is enabled)
+    openmeterUrl: ""
+    # Bearer token for authenticating with OpenMeter (always required when telemetry is enabled)
+    bearerToken: ""
+    # OTLP receiver container settings
+    image:
+      repository: ghcr.io/swissdatasciencecenter/sdsc-llm-deployment/otlp-openmeter-bridge
+      tag: "" # defaults to .Chart.AppVersion
+      pullPolicy: IfNotPresent
+    replicas: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+global: {}
+  # imagePullSecrets:
+  # tolerations:
+
+  # affinity:
+  #   nodeAffinity:
+
+environment: default
+
+openwebui:
+  enabled: true
+  persistence:
+    enabled: false
+    storageClass: default
+    size: 10Gi
+  postgres:
+    password:
+  admin:
+    user: admin
+    email: admin@sdsc.ethz.ch
+    password:
+  resources:
+    requests:
+      cpu: 500m
+      memory: 500Mi
+    limits:
+      cpu: 1000m
+      memory: 4Gi
+  tolerations: []
+  affinity: {}
+
+models: {}
+
+initJob:
+  image:
+    repository: ghcr.io/swissdatasciencecenter/sdsc-llm-deployment/init
+    tag: "" # defaults to .Chart.AppVersion
+    pullPolicy: IfNotPresent
+
+postgresql:
+  enabled: true
+  auth:
+    postgresPassword:
+    database: postgres
+    username: postgres
+  primary:
+    serviceAccount:
+      create: false
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        cpu: 2
+        memory: 4Gi
+    persistence:
+      enabled: false
+    tolerations: []
+    affinity: {}
+    initdb:
+      scriptsConfigMap: postgres-initdb-scripts
+
+authentik:
+  enabled: true
+  authentik:
+    postgresql:
+      port: 5432
+      name: authentik
+      user: authentik
+      password:
+
+    secret_key:
+    bootstrapPassword:
+    bootstrapToken:
+  blueprints:
+    secrets:
+      - authentik-blueprints
+  server:
+    resources:
+      requests:
+        cpu: 1
+        memory: "100M"
+      limits:
+        cpu: 2
+        memory: "2G"
+    tolerations: []
+    affinity: {}
+  worker:
+    resources:
+      requests:
+        cpu: 1
+        memory: "100M"
+      limits:
+        cpu: 2
+        memory: "2G"
+    tolerations: []
+    affinity: {}
+  gitlabOidc:
+    clientId:
+    clientSecret:
+    providerUrl: https://gitlab.datascience.ch/
+    providerName: datascience-gitlab
+    iconUrl: https://cdn.prod.website-files.com/63ea083f4e797cf53055586b/63ea0d1fccfb33ac8b135679_Logo.svg
+  oauthApp:
+    name: vllm
+    clientId:
+    clientSecret:
+    accessTokenValidity: "days=30"
+    refreshTokenValidity: "days=365"
+  serviceAccount:
+    create: false

@@ -1,0 +1,126 @@
+{{- if .Values.openwebui.enabled}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-openwebui
+  labels:
+    app: openwebui
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: openwebui
+  template:
+    metadata:
+      labels:
+        app: openwebui
+    spec:
+      containers:
+        - name: user-container
+          image: "ghcr.io/open-webui/open-webui:main"
+          imagePullPolicy: Always
+          env:
+            - name: HOME
+              value: /myhome
+            - name: WEBUI_URL
+              value: https://openwebui.{{ .Values.envoy.baseDomain }}
+            - name: ENABLE_OLLAMA_API
+              value: "false"
+            - name: ENABLE_OPENAI_API
+              value: "true"
+            - name: OPENAI_API_BASE_URL
+              value: https://gateway.{{ .Values.envoy.baseDomain }}/v1
+  {{- if .Values.openwebui.postgres }}
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: OPENWEBUI_DATABASE_URL
+  {{- end }}
+            - name: ENABLE_OAUTH_SIGNUP
+              value: "true"
+            - name: ENABLE_LOGIN_FORM
+              value: "true"
+            - name: OAUTH_CLIENT_ID
+              value: {{ .Values.authentik.oauthApp.clientId | required ".Values.authentik.oauthApp.clientId is required" }}
+            - name: OAUTH_CLIENT_SECRET
+              value: {{ .Values.authentik.oauthApp.clientSecret | required ".Values.authentik.oauthApp.clientSecret is required" }}
+            - name: OAUTH_ADMIN_ROLES
+              value: gateway admins
+            - name: OPENID_PROVIDER_URL
+              value: https://authentik.{{ .Values.envoy.baseDomain }}/application/o/{{ .Values.authentik.oauthApp.name }}/.well-known/openid-configuration
+            - name: OPENID_REDIRECT_URI
+              value: https://openwebui.{{ .Values.envoy.baseDomain }}/oauth/oidc/callback
+            - name: OAUTH_PROVIDER_NAME
+              value: authentik
+            - name: WEBUI_SESSION_COOKIE_SAME_SITE
+              value: lax
+            - name: WEBUI_AUTH_COOKIE_SAME_SITE
+              value: lax
+            - name: OAUTH_MERGE_ACCOUNTS_BY_EMAIL
+              value: "true"
+            - name: ENABLE_OAUTH_GROUP_MANAGEMENT
+              value: "false"
+            - name: ENABLE_FORWARD_USER_INFO_HEADERS
+              value: "true"
+            - name: ENABLE_OAUTH_ID_TOKEN_COOKIE
+              value: "false"
+            - name: CORS_ALLOW_ORIGIN
+              value: "https://openwebui.{{ .Values.envoy.baseDomain }}"
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            failureThreshold: 20
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            periodSeconds: 10
+            failureThreshold: 1
+          resources:
+            requests:
+              cpu: {{ .Values.openwebui.resources.requests.cpu | quote }}
+              memory: {{ .Values.openwebui.resources.requests.memory | quote }}
+            limits:
+              cpu: {{ .Values.openwebui.resources.limits.cpu | quote }}
+              memory: {{ .Values.openwebui.resources.limits.memory | quote }}
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          volumeMounts:
+            - name: data
+              mountPath: /app/backend/data
+              subPath: {{ .Values.environment | default "" }}/openwebui
+  {{- if .Values.openwebui.tolerations }}
+      tolerations:
+        {{- toYaml .Values.openwebui.tolerations | nindent 8 }}
+  {{- else if .Values.global.tolerations}}
+      tolerations:
+        {{- toYaml .Values.global.tolerations | nindent 8 }}
+  {{- end }}
+  {{- if .Values.openwebui.affinity }}
+      affinity:
+        {{- toYaml .Values.openwebui.affinity | nindent 8 }}
+  {{- else if .Values.global.affinity }}
+      affinity:
+        {{- toYaml .Values.global.affinity.nodeAffinity | trim | nindent 8 }}
+  {{- end }}
+      volumes:
+  {{- if .Values.openwebui.persistence.enabled }}
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}-openwebui-data
+  {{- else if .Values.openwebui.dataClaimName }}
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ .Values.openwebui.dataClaimName }}
+  {{- else }}
+        - name: data
+          emptyDir: {}
+  {{- end }}
+{{- end }}

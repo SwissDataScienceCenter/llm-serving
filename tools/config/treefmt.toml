@@ -1,0 +1,39 @@
+# Plain treefmt config (no nix required to run `treefmt`).
+# Nix ships the formatter binaries; see tools/nix/flake.nix.
+
+[global]
+excludes = [
+  "external/*",
+  # Helm templates are not valid YAML (Go template syntax).
+  "templates/**",
+  "*.enc.*",
+]
+
+[formatter.prettier]
+command = "prettier"
+options = ["--write"]
+includes = ["*.md", "*.json", "*.yaml", "*.yml"]
+
+[formatter.gofmt]
+command = "gofmt"
+options = ["-w"]
+includes = ["*.go"]
+
+[formatter.shfmt]
+command = "shfmt"
+options = ["-w", "-i", "4"]
+includes = ["*.sh"]
+
+[formatter.shellcheck]
+command = "shellcheck"
+options = ["-e", "SC1091"]
+includes = ["*.sh"]
+
+[formatter.nixfmt]
+command = "nixfmt"
+includes = ["*.nix"]
+
+[formatter.helmfmt]
+command = "helmfmt"
+options = ["--files"]
+includes = ["**/templates/*.yaml", "**/templates/*.yml", "**/templates/*.tpl"]

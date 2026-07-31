@@ -1,0 +1,254 @@
+{{- range $name, $model := .Values.models }}
+  {{- if $model.dummy }}
+---
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  labels:
+    workloadKind: InferenceWorkload
+    workloadName: model-{{ $name }}
+    networking.knative.dev/visibility: cluster-local
+    release: {{ $.Release.Name }}
+    heritage: {{ $.Release.Service }}
+  name: model-{{ $name }}
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/minScale: "{{ $model.minScale | default 0 }}"
+        autoscaling.knative.dev/maxScale: "{{ $model.maxScale | default 1 }}"
+        autoscaling.knative.dev/timeout: "{{ $model.scaleDownDelaySeconds | default 3600 }}s"
+        autoscaling.knative.dev/scale-to-zero-pod-retention-period: "{{ $model.scaleDownDelaySeconds | default 3600 }}s"
+        serving.knative.dev/progress-deadline: "1800s"
+    spec:
+      containers:
+        - name: user-container
+          image: "zerob13/mock-openai-api:latest"
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: HOST
+              value: "0.0.0.0"
+            - name: VERBOSE
+              value: "true"
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 180
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 180
+          livenessProbe:
+            httpGet:
+              path: health
+              port: 3000
+            periodSeconds: 10
+            initialDelaySeconds: 10
+          resources:
+            requests:
+              cpu: {{ $model.resources.requests.cpu | quote }}
+              memory: {{ $model.resources.requests.memory | quote }}
+    {{- if $model.resources.requests.gpu  }}
+              nvidia.com/gpu: {{ $model.resources.requests.gpu }}
+    {{- end }}
+            limits:
+              cpu: {{ $model.resources.limits.cpu | quote }}
+              memory: {{ $model.resources.limits.memory | quote }}
+    {{- if $model.resources.limits.gpu  }}
+              nvidia.com/gpu: {{ $model.resources.limits.gpu }}
+    {{- end }}
+          volumeMounts:
+    {{- if $model.persistence.enabled }}
+          - mountPath: {{ $model.cacheDir.path | default "/myhome" }}
+            name: pvc-cache
+            subPath: {{ $.Values.environment | default "." }}/model_cache/
+    {{- else if (and $model.cacheDir $model.cacheDir.claimName) }}
+          - mountPath: {{ $model.cacheDir.path }}
+            name: pvc-cache
+            subPath: {{ $.Values.environment | default "." }}/model_cache
+    {{- end }}
+          ports:
+            - containerPort: 3000
+              protocol: TCP
+    {{- if $model.tolerations }}
+      tolerations:
+        {{- toYaml $model.tolerations | nindent 8 }}
+    {{- else if $.Values.global.tolerations }}
+      tolerations:
+        {{- toYaml $.Values.global.tolerations | nindent 8 }}
+    {{- end }}
+    {{- if $model.affinity }}
+      affinity:
+        {{- toYaml $model.affinity | nindent 8 }}
+    {{- else if $.Values.global.affinity }}
+      affinity:
+        {{- toYaml $.Values.global.affinity | nindent 8 }}
+    {{- end }}
+      timeoutSeconds: 600
+      responseStartTimeoutSeconds: 600
+      idleTimeoutSeconds: 600
+    {{- if or $model.persistence.enabled (and $model.cacheDir $model.cacheDir.claimName) }}
+      volumes:
+        - name: pvc-cache
+          persistentVolumeClaim:
+            claimName: {{ if $model.persistence.enabled }}{{ $.Release.Name }}-model-{{ $name }}-cache{{ else }}{{ $model.cacheDir.claimName }}{{ end }}
+    {{- end }}
+  traffic:
+    - latestRevision: true
+      percent: 100
+  {{- else if $model.internal }}
+---
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  labels:
+    workloadKind: InferenceWorkload
+    workloadName: model-{{ $name }}
+    networking.knative.dev/visibility: cluster-local
+    release: {{ $.Release.Name }}
+    heritage: {{ $.Release.Service }}
+  name: model-{{ $name }}
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/minScale: "{{ $model.minScale | default 0 }}"
+        autoscaling.knative.dev/maxScale: "{{ $model.maxScale | default 1 }}"
+        autoscaling.knative.dev/timeout: "{{ $model.scaleDownDelaySeconds | default 3600 }}s"
+        autoscaling.knative.dev/scale-to-zero-pod-retention-period: "{{ $model.scaleDownDelaySeconds | default 3600 }}s"
+        serving.knative.dev/progress-deadline: "1800s"
+    spec:
+      containers:
+        - name: user-container
+          image: "{{ $model.image.repository | default "vllm/vllm-openai" }}:{{ $model.image.tag | default "latest" }}"
+          imagePullPolicy: IfNotPresent
+    {{- if not $model.defaultCommand}}
+          command:
+            - python3
+            - -m
+            - vllm.entrypoints.openai.api_server
+            - --model
+            - {{ $model.fullName }}
+            - --max-model-len
+            - {{ $model.contextLength | default 8192 | quote }}
+            - --gpu-memory-utilization
+            - {{ $model.gpuMemoryUtilization | default 0.9 | quote }}
+      {{- if $model.logRequests }}
+            - --enable-log-requests
+      {{- end }}
+      {{- if $model.reasoningParser}}
+            - --reasoning-parser
+            - {{ $model.reasoningParser | quote }}
+      {{- end }}
+      {{- if $model.enableTools }}
+            - --tool-call-parser
+            - {{ $model.toolCallParser | default "hermes" }}
+            - --enable-auto-tool-choice
+      {{- end }}
+      {{- if $model.chatTemplate }}
+            - --chat-template
+            - {{ $model.chatTemplate | quote }}
+      {{- end }}
+      {{- if $model.generationConfig }}
+            - --override-generation-config
+            - {{ $model.generationConfig | toJson | quote }}
+      {{- end }}
+      {{- if $model.extraArgs }}
+              {{- toYaml $model.extraArgs | nindent 12 }}
+      {{- end }}
+    {{- end }}
+          env:
+            - name: DO_NOT_TRACK
+              value: "1"
+            - name: HOME
+              value: /myhome
+            - name: VLLM_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: vllm-secret-{{ $name }}
+                  key: apiKey
+    {{- if or $model.persistence.enabled $model.cacheDir }}
+            - name: VLLM_CACHE_ROOT
+              value: {{ $model.cacheDir.path | default "/myhome" }}
+    {{- end }}
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            failureThreshold: 420
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            failureThreshold: 420
+          livenessProbe:
+            httpGet:
+              path: health
+              port: 8000
+            periodSeconds: 30
+            initialDelaySeconds: 60
+          resources:
+            requests:
+              cpu: {{ $model.resources.requests.cpu | quote }}
+              memory: {{ $model.resources.requests.memory | quote }}
+    {{- if $model.resources.requests.gpu  }}
+              nvidia.com/gpu: {{ $model.resources.requests.gpu }}
+    {{- end }}
+            limits:
+              cpu: {{ $model.resources.limits.cpu | quote }}
+              memory: {{ $model.resources.limits.memory | quote }}
+    {{- if $model.resources.limits.gpu  }}
+              nvidia.com/gpu: {{ $model.resources.limits.gpu }}
+    {{- end }}
+          ports:
+            - containerPort: 8000
+              protocol: TCP
+          workingDir: {{ $model.cacheDir.path | default "/myhome" }}
+          volumeMounts:
+    {{- if $model.persistence.enabled }}
+          - mountPath: {{ $model.cacheDir.path | default "/myhome" }}
+            name: pvc-cache
+            subPath: {{ $.Values.environment | default "." }}/model_cache/
+    {{- else if (and $model.cacheDir $model.cacheDir.claimName) }}
+          - mountPath: {{ $model.cacheDir.path }}
+            name: pvc-cache
+            subPath: {{ $.Values.environment | default "." }}/model_cache
+    {{- end }}
+    {{- if $model.tolerations }}
+      tolerations:
+        {{- toYaml $model.tolerations | nindent 8 }}
+    {{- else if $.Values.global.tolerations }}
+      tolerations:
+        {{- toYaml $.Values.global.tolerations | nindent 8 }}
+    {{- end }}
+    {{- if $model.affinity }}
+      affinity:
+        {{- toYaml $model.affinity | nindent 8 }}
+    {{- else if $.Values.global.affinity }}
+      affinity:
+        {{- toYaml $.Values.global.affinity | nindent 8 }}
+    {{- end }}
+    {{- if or $model.persistence.enabled (and $model.cacheDir $model.cacheDir.claimName) }}
+      volumes:
+        - name: pvc-cache
+          persistentVolumeClaim:
+            claimName: {{ if $model.persistence.enabled }}{{ $.Release.Name }}-model-{{ $name }}-cache{{ else }}{{ $model.cacheDir.claimName }}{{ end }}
+    {{- end }}
+      timeoutSeconds: 600
+      responseStartTimeoutSeconds: 600
+      idleTimeoutSeconds: 600
+  traffic:
+    - latestRevision: true
+      percent: 100
+  {{- end }}
+{{- end }}

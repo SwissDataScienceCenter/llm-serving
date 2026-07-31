@@ -1,0 +1,19 @@
+# Hooks use tools from the Nix dev shell (`just develop`).
+repos:
+  - repo: local
+    hooks:
+      - id: format
+        name: Format files.
+        entry: just check-format
+        language: system
+        pass_filenames: false
+      - id: lint
+        name: Lint code.
+        entry: just lint
+        language: system
+        pass_filenames: false
+      - id: gitleaks
+        name: Scan secrets.
+        entry: just check-leaks --pre-commit --staged
+        language: system
+        pass_filenames: false

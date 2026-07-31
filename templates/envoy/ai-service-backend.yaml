@@ -1,0 +1,23 @@
+{{- if .Values.envoy.enabled }}
+  {{- range $name, $model := .Values.models }}
+    {{- if or $model.internal (and (not $model.internal) $model.apiUrl) }}
+---
+apiVersion: aigateway.envoyproxy.io/v1alpha1
+kind: AIServiceBackend
+metadata:
+  name: {{ include "envoy.backendName" (merge (dict "modelName" $name) $) }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    app: model-{{ $name }}
+    release: {{ $.Release.Name }}
+spec:
+  schema:
+    name: OpenAI
+    version: "v1"
+  backendRef:
+    name: {{ include "envoy.backendName" (merge (dict "modelName" $name) $) }}
+    kind: Backend
+    group: gateway.envoyproxy.io
+    {{- end }}
+  {{- end }}
+{{- end }}

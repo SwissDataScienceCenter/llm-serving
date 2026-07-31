@@ -1,0 +1,19 @@
+{{- if and .Values.envoy.enabled .Values.envoy.telemetry.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: otlp-openmeter-bridge
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: otlp-openmeter-bridge
+    release: {{ .Release.Name }}
+spec:
+  selector:
+    app: otlp-openmeter-bridge
+  ports:
+    - protocol: TCP
+      port: 4317
+      targetPort: 4317
+      name: grpc
+  type: ClusterIP
+{{- end }}

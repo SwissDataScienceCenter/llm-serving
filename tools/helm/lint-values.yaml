@@ -1,0 +1,18 @@
+# Dummy values so `helm template` (just lint) can render required fields.
+authentik:
+  authentik:
+    postgresql:
+      password: dummy
+  oauthApp:
+    clientId: dummy
+    clientSecret: dummy
+openwebui:
+  admin:
+    password: dummy
+  postgres:
+    password: dummy
+postgresql:
+  auth:
+    postgresPassword: dummy
+initJob:
+  image: {}

@@ -1,0 +1,14 @@
+{{- if .Values.envoy.enabled }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "envoy.fullname" . }}-wildcard
+  namespace: {{ .Release.Namespace }}
+spec:
+  secretName: {{ include "envoy.fullname" . }}-wildcard-https
+  dnsNames:
+    - "*.{{ .Values.envoy.baseDomain }}"
+  issuerRef:
+    kind: ClusterIssuer
+    name: {{ .Values.envoy.clusterissuer }}
+{{- end }}

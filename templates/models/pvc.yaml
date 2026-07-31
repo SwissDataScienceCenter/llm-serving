@@ -1,0 +1,19 @@
+{{- range $name, $model := .Values.models }}
+  {{- if and $model.internal $model.persistence.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ $.Release.Name }}-model-{{ $name }}-cache
+  labels:
+    app: model-{{ $name }}
+    release: {{ $.Release.Name }}
+spec:
+  accessModes:
+    - {{ $model.persistence.accessMode | default "ReadWriteOnce" }}
+  storageClassName: {{ $model.persistence.storageClass | default "default" }}
+  resources:
+    requests:
+      storage: {{ $model.persistence.size | default "50Gi" }}
+  {{- end }}
+{{- end }}

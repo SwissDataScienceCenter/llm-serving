@@ -1,0 +1,9 @@
+{{- if and .Values.envoy.enabled .Values.envoy.gatewayClass.enabled }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: {{ .Values.envoy.gatewayClass.name | default (include "envoy.fullname" .) }}
+  namespace: default
+spec:
+  controllerName: gateway.envoyproxy.io/gatewayclass-controller
+{{- end }}

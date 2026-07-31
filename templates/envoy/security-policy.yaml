@@ -1,0 +1,23 @@
+{{- if and .Values.envoy.enabled (include "envoy.jwksUri" .) }}
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: authentik-jwks
+  namespace: {{ .Release.Namespace }}
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: {{ include "envoy.fullname" . }}-models
+  jwt:
+    providers:
+    - name: authentik
+      remoteJWKS:
+        uri: {{ include "envoy.jwksUri" . }}
+      recomputeRoute: true
+      claimToHeaders:
+        - claim: sub
+          header: x-sub
+        - claim: name
+          header: x-name
+{{- end }}

@@ -1,0 +1,23 @@
+{{- range $name, $model := .Values.models }}
+  {{- if $model.internal  }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: model-{{ $name }}
+spec:
+  podSelector:
+    matchLabels:
+      app: model-{{ $name }}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+      - namespaceSelector:
+          matchLabels:
+            name: envoy-gateway-system
+      ports:
+      - protocol: TCP
+        port: 80
+  {{- end }}
+{{- end }}

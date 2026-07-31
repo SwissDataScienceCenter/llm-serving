@@ -1,0 +1,11 @@
+{{- if and .Values.envoy.enabled .Values.envoy.telemetry.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otlp-openmeter-bridge-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    release: {{ .Release.Name }}
+data:
+  remote-api-url: {{ .Values.envoy.telemetry.openmeterUrl | quote }}
+{{- end }}

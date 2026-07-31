@@ -1,0 +1,4 @@
+VLLM Gateway and models have been successfully deployed on your cluster.
+
+You can access the gateway at https://gateway.{{ .Values.envoy.baseDomain }}/v1/chat/completions
+You can access Open-WebUI at https://openwebui.{{ .Values.envoy.baseDomain }}/

@@ -1,0 +1,40 @@
+# Patterns to ignore when building packages.
+# This supports shell glob matching, relative path matching, and
+# negation (prefixed with !). Only one pattern per line.
+.DS_Store
+scripts
+otlp-openmeter-bridge
+.github
+# Dev tooling and docs (not part of the chart)
+tools
+docs
+justfile
+CONTRIBUTING.md
+.devenv/
+.direnv/
+.output/
+.envrc
+*.env
+*.log
+.pre-commit-config.yaml
+# Environment values live outside the chart (glob does not match plain values.yaml)
+values.*.yaml
+# Common VCS dirs
+.git/
+.gitignore
+.bzr/
+.bzrignore
+.hg/
+.hgignore
+.svn/
+.jj/
+# Common backup files
+*.swp
+*.bak
+*.tmp
+*~
+# Various IDEs
+.project
+.idea/
+*.tmproj
+

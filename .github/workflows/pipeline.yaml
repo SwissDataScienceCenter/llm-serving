@@ -1,0 +1,46 @@
+name: pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - azure-deployment
+    tags:
+      - "v*"
+  pull_request:
+    branches:
+      - main
+      - azure-deployment
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    uses: ./.github/workflows/ci.yaml
+
+  build-and-push:
+    needs: check
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        include:
+          - name: init
+            context: scripts/init
+          - name: otlp-openmeter-bridge
+            context: otlp-openmeter-bridge
+    uses: ./.github/workflows/docker.yaml
+    with:
+      name: ${{ matrix.name }}
+      context: ${{ matrix.context }}
+
+  publish-chart:
+    needs: check
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/helm.yaml

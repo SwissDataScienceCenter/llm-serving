@@ -1,0 +1,19 @@
+name: ci
+# Reusable checks — invoked by pipeline.yaml, never triggered on its own.
+on:
+  workflow_call:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        task: [check-format, lint, build, test]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-nix
+      - name: ${{ matrix.task }}
+        run: |
+          nix develop --no-pure-eval --accept-flake-config "./tools/nix#ci" --command \
+            just ${{ matrix.task }}

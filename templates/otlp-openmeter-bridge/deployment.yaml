@@ -1,0 +1,49 @@
+{{- if and .Values.envoy.enabled .Values.envoy.telemetry.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otlp-openmeter-bridge
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: otlp-openmeter-bridge
+    release: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.envoy.telemetry.replicas | default 1 }}
+  selector:
+    matchLabels:
+      app: otlp-openmeter-bridge
+  template:
+    metadata:
+      labels:
+        app: otlp-openmeter-bridge
+        release: {{ .Release.Name }}
+    spec:
+  {{- if .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{ toYaml .Values.global.imagePullSecrets | indent 8 }}
+  {{- end }}
+      containers:
+        - name: bridge
+          image: {{ .Values.envoy.telemetry.image.repository | default "ghcr.io/swissdatasciencecenter/sdsc-llm-deployment/otlp-openmeter-bridge" }}:{{ .Values.envoy.telemetry.image.tag | default .Chart.AppVersion }}
+          imagePullPolicy: {{ .Values.envoy.telemetry.image.pullPolicy | default "IfNotPresent" }}
+          ports:
+            - containerPort: 4317
+              name: grpc
+          env:
+            - name: REMOTE_API_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: otlp-openmeter-bridge-config
+                  key: remote-api-url
+            - name: GRPC_LISTEN_ADDR
+              value: ":4317"
+            - name: EVENT_TYPE
+              value: "llm_call"
+            - name: BEARER_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: otlp-openmeter-bridge-secret
+                  key: bearer-token
+          resources:
+            {{- toYaml .Values.envoy.telemetry.resources | nindent 12 }}
+{{- end }}

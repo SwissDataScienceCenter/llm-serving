@@ -1,0 +1,17 @@
+creation_rules:
+  - path_regex: .*\.(enc|dec)\.yaml$
+    encrypted_regex: "^(?i)(.*password|.*token|[a-z-_]*key.*|[a-z-_]*id|[a-z-_]*secret|.*certificate.*)$"
+    age:
+      - age1xtmgj4gcsxpxthpazvckce05mnljs3c9dylvy93ndew5egtna99qyx2n6k
+      - age1d7snnadage3kkrz6w55s4dr5emwrnczvx03mjr2076k8zd7dt4psk6p0e7
+      - age1jc90khzlmchdnnv5edsj3c5uz55x02xmnlt3drjmnqq5y02pd4nshftnww
+      - age16ccgm6y5x6xfw6n93vq4k5qpvjmjzsw7v6lh8hhd2zqwjf982d2s36jnwq
+      - age1t4x83rk02yqvekuyk3dx6dqq6gqwe4engqrpzkdk0m9gv9zhuazsehhrt5
+stores:
+  yaml:
+    indent: 2
+# age1xtmgj4gcsxpxthpazvckce05mnljs3c9dylvy93ndew5egtna99qyx2n6k Ralf Grubenmann
+# age1d7snnadage3kkrz6w55s4dr5emwrnczvx03mjr2076k8zd7dt4psk6p0e7 Ralf Grubemann (Laptop)
+# age16ccgm6y5x6xfw6n93vq4k5qpvjmjzsw7v6lh8hhd2zqwjf982d2s36jnwq Matthias Meyer
+# age1t4x83rk02yqvekuyk3dx6dqq6gqwe4engqrpzkdk0m9gv9zhuazsehhrt5 Cyril Matthey-Doret
+# age1jc90khzlmchdnnv5edsj3c5uz55x02xmnlt3drjmnqq5y02pd4nshftnww Gitlab CI
