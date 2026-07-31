@@ -4,13 +4,11 @@ on:
   push:
     branches:
       - main
-      - azure-deployment
     tags:
       - "v*"
   pull_request:
     branches:
       - main
-      - azure-deployment
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

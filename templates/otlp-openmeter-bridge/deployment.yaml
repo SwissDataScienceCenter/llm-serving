@@ -24,7 +24,7 @@ spec:
   {{- end }}
       containers:
         - name: bridge
-          image: {{ .Values.envoy.telemetry.image.repository | default "ghcr.io/swissdatasciencecenter/sdsc-llm-deployment/otlp-openmeter-bridge" }}:{{ .Values.envoy.telemetry.image.tag | default .Chart.AppVersion }}
+          image: {{ .Values.envoy.telemetry.image.repository | default "ghcr.io/swissdatasciencecenter/llm-serving/otlp-openmeter-bridge" }}:{{ .Values.envoy.telemetry.image.tag | default .Chart.AppVersion }}
           imagePullPolicy: {{ .Values.envoy.telemetry.image.pullPolicy | default "IfNotPresent" }}
           ports:
             - containerPort: 4317

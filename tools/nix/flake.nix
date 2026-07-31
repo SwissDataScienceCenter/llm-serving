@@ -1,5 +1,5 @@
 {
-  description = "sdsc-llm-deployment development environment";
+  description = "swissdatasciencecenter/llm-serving development environment";
 
   nixConfig = {
     extra-substituters = [

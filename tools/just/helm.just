@@ -41,4 +41,4 @@ publish tag: fetch-deps
     version="{{tag}}"
     version="${version#v}"
     helm package . --version "$version" --app-version "{{tag}}"
-    helm push "sdsc-vllm-${version}.tgz" oci://ghcr.io/swissdatasciencecenter/sdsc-llm-deployment/charts
+    helm push "sdsc-vllm-${version}.tgz" oci://ghcr.io/swissdatasciencecenter/llm-serving/charts

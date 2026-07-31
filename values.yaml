@@ -18,7 +18,7 @@ envoy:
     bearerToken: ""
     # OTLP receiver container settings
     image:
-      repository: ghcr.io/swissdatasciencecenter/sdsc-llm-deployment/otlp-openmeter-bridge
+      repository: ghcr.io/swissdatasciencecenter/llm-serving/otlp-openmeter-bridge
       tag: "" # defaults to .Chart.AppVersion
       pullPolicy: IfNotPresent
     replicas: 1
@@ -65,7 +65,7 @@ models: {}
 
 initJob:
   image:
-    repository: ghcr.io/swissdatasciencecenter/sdsc-llm-deployment/init
+    repository: ghcr.io/swissdatasciencecenter/llm-serving/init
     tag: "" # defaults to .Chart.AppVersion
     pullPolicy: IfNotPresent
 

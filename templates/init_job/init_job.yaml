@@ -24,7 +24,7 @@ spec:
           command: ["sh", "-c", "until curl -f 'http://openwebui.{{ .Release.Namespace }}.svc.cluster.local:8080/health'; do echo waiting for openwebui; sleep 2; done"]
       containers:
         - name: init-deployment
-          image: {{ .Values.initJob.image.repository | default "ghcr.io/swissdatasciencecenter/sdsc-llm-deployment/init" }}:{{ .Values.initJob.image.tag | default .Chart.AppVersion }}
+          image: {{ .Values.initJob.image.repository | default "ghcr.io/swissdatasciencecenter/llm-serving/init" }}:{{ .Values.initJob.image.tag | default .Chart.AppVersion }}
           imagePullPolicy: {{ .Values.initJob.image.pullPolicy | default "IfNotPresent" }}
           args: ["init"]
           env:
