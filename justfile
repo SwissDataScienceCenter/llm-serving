@@ -5,7 +5,7 @@ root_dir := `git rev-parse --show-toplevel`
 flake_dir := root_dir / "tools/nix"
 output_dir := root_dir / ".output"
 build_dir := output_dir / "build"
-go_modules := "scripts/init otlp-openmeter-bridge"
+go_modules := "src/init src/otlp-openmeter-bridge"
 
 # Manage nix environment.
 [group('modules')]
@@ -52,8 +52,11 @@ lint:
 build *args:
     #!/usr/bin/env bash
     set -eu
-    cd "{{root_dir}}"
-    for d in {{go_modules}}; do (cd "$d" && go build -o "{{build_dir}}/$(basename "$d")" ./...); done
+    for d in {{go_modules}}; do
+        cd "{{root_dir}}/$d"
+        echo "building $d"
+        go build -v -o "{{build_dir}}/$(basename "$d")" ./... 
+    done
 
 # Clean up generated files.
 [group('general')]
