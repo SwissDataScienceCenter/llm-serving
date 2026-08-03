@@ -27,9 +27,9 @@ jobs:
       matrix:
         include:
           - name: init
-            context: scripts/init
+            context: src/init
           - name: otlp-openmeter-bridge
-            context: otlp-openmeter-bridge
+            context: src/otlp-openmeter-bridge
     uses: ./.github/workflows/docker.yaml
     with:
       name: ${{ matrix.name }}
