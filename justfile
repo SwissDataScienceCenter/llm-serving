@@ -10,9 +10,6 @@ go_modules := "scripts/init otlp-openmeter-bridge"
 # Manage nix environment.
 [group('modules')]
 mod nix "./tools/just/nix.just"
-# Manage secrets with sops+age.
-[group('modules')]
-mod sops "./tools/just/sops.just"
 # Manage the helm chart.
 [group('modules')]
 mod helm "./tools/just/helm.just"
@@ -60,8 +57,9 @@ build *args:
 
 # Clean up generated files.
 [group('general')]
+[confirm("Delete everything in:\n" + output_dir + "?\n [y/n]")]
 clean: helm::clean
-  rm -r "{{output_dir}}"/*
+    rm -fr "{{output_dir}}"/*
 
 # Test the Go modules.
 [group('general')]
@@ -74,9 +72,7 @@ test *args:
 # Deploy Helm chart.
 [group('chart')]
 deploy namespace release values_file:
-  just sops::run exec-file \
-      "{{values_file}}" \
-      'helm upgrade --install -n "{{namespace}}" "{{release}}" . --values "{}"'
+    helm upgrade --install -n "{{namespace}}" "{{release}}" . --values "{{values_file}}"
 
 # Errors if the repository contains unformatted files.
 [private]
@@ -87,4 +83,4 @@ check-format *args:
 # Check for secret leaks.
 [private]
 check-leaks *args:
-  gitleaks git --config ./tools/config/gitleaks_extend.toml {{args}}
+    gitleaks git {{args}}
