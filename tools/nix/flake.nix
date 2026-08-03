@@ -67,10 +67,8 @@
             (callPackage ./packages/helmfmt.nix { helmfmt-src = inputs.helmfmt-src; })
           ];
           devTools = with pkgs; [
-            age
             gitleaks
             prek
-            sops
             zsh
           ];
           goModule = import ./modules/go.nix { inherit pkgs; };
