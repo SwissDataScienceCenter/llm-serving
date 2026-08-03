@@ -23,8 +23,8 @@ Without nix, run it manually once (it is idempotent).
 
 ## Common tasks
 
-Run `just` (or `just --list`) to see everything. Tooling recipes are in the ### Manual installation steps
-justfile (e.g. `just lint`), whereas specialized recipes (e.g. `just helm::template`) are in just modules under `tools/just`.
+Run `just` (or `just --list`) to see everything. Tooling recipes are in the justfile (e.g. `just lint`),
+whereas specialized recipes (e.g. `just helm::template`) are in just modules under `tools/just`.
 
 ## pre-commit
 
