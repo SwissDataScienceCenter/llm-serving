@@ -57,8 +57,9 @@ build *args:
 
 # Clean up generated files.
 [group('general')]
+[confirm("Delete everything in:\n" + output_dir + "?\n [y/n]")]
 clean: helm::clean
-    rm -r "{{output_dir}}"/*
+    rm -fr "{{output_dir}}"/*
 
 # Test the Go modules.
 [group('general')]
