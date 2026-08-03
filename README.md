@@ -86,11 +86,6 @@ models:
         gpu: "0.2" # fraction of a gpu to use
 ```
 
-### Secrets
-
-You may supply your encrypted deployment's secrets in `values.<env>.yaml`.
-This is set up to encrypt values with sops+age; if you maintain those, see [CONTRIBUTING.md](CONTRIBUTING.md#secrets).
-
 ### Manual installation steps
 
 Some steps need to be done manually the first time this is deployed, since the relevant configuration can't be set automatically.
