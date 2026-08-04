@@ -5,3 +5,9 @@ config.toml
 .devenv/
 .direnv/
 .output/
+
+# agentic setup
+.agents/
+.claude/
+AGENTS.md
+CLAUDE.md
