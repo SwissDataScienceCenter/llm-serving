@@ -1,9 +1,6 @@
 dependencies:
-- name: postgresql
-  repository: https://charts.bitnami.com/bitnami
-  version: 18.7.0
 - name: authentik
   repository: https://goauthentik.github.io/helm
   version: 2026.5.2
-digest: sha256:2f5bc89396b1bb7a388a1c12c221d8f4a194812e83e54bd1839fb9bdb53e1b1c
-generated: "2026-06-04T09:20:49.97286315+02:00"
+digest: sha256:7cf416b44f9132417c0006541e59049f9a44a28e36f003842cd334781523d8a5
+generated: "2026-08-04T00:00:00.000000000+02:00"
