@@ -37,3 +37,9 @@ values.*.yaml
 .idea/
 *.tmproj
 
+# agentic files
+
+.agents/
+AGENTS.md
+.claude/
+CLAUDE.md
