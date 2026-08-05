@@ -9,12 +9,15 @@ charts_dir := root_dir / "charts"
 default:
     just --list helm
 
+# Remove fetched subchart archives.
 clean:
-  rm "{{charts_dir}}"/*
+  rm -rf "{{charts_dir}}"
 
 # Lint chart and templates.
-lint:
+lint: fetch-deps
   helm lint "{{root_dir}}"
+  # `helm lint` reports missing required values as INFO and exits 0.
+  helm template "{{root_dir}}" --values "{{root_dir}}/tools/helm/lint-values.yaml" > /dev/null
 
 # Fetch subchart archives (charts/*.tgz) when absent.
 [private]
@@ -22,7 +25,6 @@ fetch-deps:
     #!/usr/bin/env bash
     set -eu
     cd "{{root_dir}}"
-    helm repo add bitnami https://charts.bitnami.com/bitnami
     helm repo add authentik https://goauthentik.github.io/helm
     helm dependency build
 
