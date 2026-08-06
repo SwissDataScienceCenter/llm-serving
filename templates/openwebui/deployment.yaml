@@ -32,13 +32,11 @@ spec:
               value: "true"
             - name: OPENAI_API_BASE_URL
               value: https://gateway.{{ .Values.envoy.baseDomain }}/v1
-  {{- if .Values.openwebui.postgres }}
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
                   name: postgres-secret
                   key: OPENWEBUI_DATABASE_URL
-  {{- end }}
             - name: ENABLE_OAUTH_SIGNUP
               value: "true"
             - name: ENABLE_LOGIN_FORM
