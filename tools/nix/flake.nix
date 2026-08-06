@@ -68,6 +68,7 @@
           ];
           devTools = with pkgs; [
             gitleaks
+            postgresql
             prek
             zsh
           ];
