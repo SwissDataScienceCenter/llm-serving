@@ -77,6 +77,20 @@ test *args:
 deploy namespace release values_file:
     helm upgrade --install -n "{{namespace}}" "{{release}}" . --values "{{values_file}}"
 
+# init roles and databases. psql prompts for the admin password.
+[group('chart')]
+db-bootstrap host admin_user="postgres" openwebui_db="openwebui" authentik_db="authentik":
+    #!/usr/bin/env bash
+    set -eu
+    : "${OPENWEBUI_PG_PASSWORD_FILE:?not set, see .env.tpl}"
+    : "${AUTHENTIK_PG_PASSWORD_FILE:?not set, see .env.tpl}"
+    OPENWEBUI_PG_DATABASE="{{openwebui_db}}" \
+    AUTHENTIK_PG_DATABASE="{{authentik_db}}" \
+    OPENWEBUI_PG_PASSWORD="$(< "$OPENWEBUI_PG_PASSWORD_FILE")" \
+    AUTHENTIK_PG_PASSWORD="$(< "$AUTHENTIK_PG_PASSWORD_FILE")" \
+        psql "postgresql://{{admin_user}}@{{host}}/postgres" \
+            --set ON_ERROR_STOP=1 --file "{{root_dir}}/tools/scripts/bootstrap-db.sql"
+
 # Errors if the repository contains unformatted files.
 [private]
 check-format *args:
