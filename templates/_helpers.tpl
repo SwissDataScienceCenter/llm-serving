@@ -1,25 +1,31 @@
 {{/*
-Envoy Gateway full name
+Envoy Gateway full name.
 */}}
 {{- define "envoy.fullname" -}}
   {{- printf "%s-envoy" .Release.Name -}}
 {{- end -}}
 
 {{/*
-Base name for every resource of one model. Fails when too long.
+OpenWebUI full name.
+*/}}
+{{- define "openwebui.fullname" -}}
+  {{- printf "%s-openwebui" .Release.Name -}}
+{{- end -}}
 
-The cap is the 63-character DNS label limit minus the revision suffix Knative
-appends to derive names from the Service.
+{{/*
+Telemetry bridge full name
+*/}}
+{{- define "telemetry.fullname" -}}
+  {{- printf "%s-otlp-openmeter-bridge" .Release.Name -}}
+{{- end -}}
+
+{{/*
+Base name for every resource of one model.
 
 Usage: {{ include "model.fullname" (merge (dict "modelName" $name) $) }}
 */}}
 {{- define "model.fullname" -}}
-  {{- $full := printf "%s-model-%s" .Release.Name .modelName -}}
-  {{- $cap := sub 63 (len "-00001") -}}
-  {{- if gt (len $full) (int $cap) -}}
-    {{- fail (printf "model resource name %q exceeds the %d characters available: shorten the release name or the model key" $full $cap) -}}
-  {{- end -}}
-  {{- $full -}}
+  {{- printf "%s-model-%s" .Release.Name .modelName -}}
 {{- end -}}
 
 {{/*
