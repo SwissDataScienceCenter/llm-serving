@@ -1,19 +1,25 @@
-{{- define "sanitizeEnvVarName" -}}
-{{ regexReplaceAll "[^A-Z0-9]+" (upper .) "_" }}
-{{- end -}}
-
 {{/*
 Envoy Gateway full name
 */}}
 {{- define "envoy.fullname" -}}
-  {{- printf "%s-envoy" .Release.Name | trunc 63 | trimSuffix "-" -}}
+  {{- printf "%s-envoy" .Release.Name -}}
 {{- end -}}
 
 {{/*
-Backend name for a specific model
+Base name for every resource of one model. Fails when too long.
+
+The cap is the 63-character DNS label limit minus the revision suffix Knative
+appends to derive names from the Service.
+
+Usage: {{ include "model.fullname" (merge (dict "modelName" $name) $) }}
 */}}
-{{- define "envoy.backendName" -}}
-  {{- printf "%s-%s" (include "envoy.fullname" .) .modelName | trunc 63 | trimSuffix "-" -}}
+{{- define "model.fullname" -}}
+  {{- $full := printf "%s-model-%s" .Release.Name .modelName -}}
+  {{- $cap := sub 63 (len "-00001") -}}
+  {{- if gt (len $full) (int $cap) -}}
+    {{- fail (printf "model resource name %q exceeds the %d characters available: shorten the release name or the model key" $full $cap) -}}
+  {{- end -}}
+  {{- $full -}}
 {{- end -}}
 
 {{/*
