@@ -1,6 +1,4 @@
 # Dummy values so `helm template` (just lint) can render required fields.
-postgresql:
-  host: pg.example.invalid
 authentik:
   authentik:
     postgresql:
@@ -13,6 +11,7 @@ openwebui:
   admin:
     password: dummy
   postgres:
+    host: pg.example.invalid
     password: dummy
 initJob:
   image: {}
