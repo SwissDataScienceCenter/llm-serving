@@ -5,6 +5,8 @@
 -- %I quotes identifiers, so scoped names containing hyphens or capitals are safe.
 -- Each database is owned by a role of the same name.
 
+\set ON_ERROR_STOP on -- Aborts on first error.
+
 \getenv openwebui_db       OPENWEBUI_PG_DATABASE
 \getenv openwebui_password OPENWEBUI_PG_PASSWORD
 \getenv authentik_db       AUTHENTIK_PG_DATABASE

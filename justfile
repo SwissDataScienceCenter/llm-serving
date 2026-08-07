@@ -89,7 +89,7 @@ db-bootstrap host admin_user="postgres" openwebui_db="vllm-openwebui" authentik_
     OPENWEBUI_PG_PASSWORD="$(< "$OPENWEBUI_PG_PASSWORD_FILE")" \
     AUTHENTIK_PG_PASSWORD="$(< "$AUTHENTIK_PG_PASSWORD_FILE")" \
         psql "postgresql://{{admin_user}}@{{host}}/postgres" \
-            --set ON_ERROR_STOP=1 --file "{{root_dir}}/tools/scripts/bootstrap-db.sql"
+            --file "{{root_dir}}/tools/scripts/bootstrap-db.sql"
 
 # Errors if the repository contains unformatted files.
 [private]
