@@ -8,7 +8,7 @@
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: BackendTrafficPolicy
 metadata:
-  name: {{ .Release.Name }}-model-rate-limit-policy
+  name: {{ include "envoy.fullname" . }}-model-rate-limit
   namespace: {{ .Release.Namespace }}
 spec:
   targetRefs:

@@ -20,14 +20,17 @@ Telemetry bridge full name
 {{- end -}}
 
 {{/*
-Base name for every resource of one model.
-
-Usage: {{ include "model.fullname" (merge (dict "modelName" $name) $) }}
+Init job full name.
 */}}
 {{- define "initjob.fullname" -}}
   {{- printf "%s-init" .Release.Name -}}
 {{- end -}}
 
+{{/*
+Base name for every resource of one model.
+
+Usage: {{ include "model.fullname" (merge (dict "modelName" $name) $) }}
+*/}}
 {{- define "model.fullname" -}}
   {{- printf "%s-model-%s" .Release.Name .modelName -}}
 {{- end -}}
