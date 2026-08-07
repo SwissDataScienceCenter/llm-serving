@@ -1,6 +1,6 @@
 **/charts/*.tgz
 config.toml
-.env
+*.env
 .devenv/
 .direnv/
 .output/

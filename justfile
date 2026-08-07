@@ -82,8 +82,8 @@ deploy namespace release values_file:
 db-bootstrap host admin_user="postgres" openwebui_db="openwebui" authentik_db="authentik":
     #!/usr/bin/env bash
     set -eu
-    : "${OPENWEBUI_PG_PASSWORD_FILE:?not set, see .env.tpl}"
-    : "${AUTHENTIK_PG_PASSWORD_FILE:?not set, see .env.tpl}"
+    : "${OPENWEBUI_PG_PASSWORD_FILE:?not set, see .tpl.env}"
+    : "${AUTHENTIK_PG_PASSWORD_FILE:?not set, see .tpl.env}"
     OPENWEBUI_PG_DATABASE="{{openwebui_db}}" \
     AUTHENTIK_PG_DATABASE="{{authentik_db}}" \
     OPENWEBUI_PG_PASSWORD="$(< "$OPENWEBUI_PG_PASSWORD_FILE")" \
