@@ -12,6 +12,8 @@ The chart only creates custom resources that rely on these systems being install
 - [Envoy Gateway](https://gateway.envoyproxy.io/) with the [Envoy AI Gateway](https://aigateway.envoyproxy.io/) extension (controller in `envoy-gateway-system`)
 - [Knative Serving](https://knative.dev/docs/serving/) (scale-to-zero model services)
 - [cert-manager](https://cert-manager.io/) with a `ClusterIssuer` matching `envoy.clusterissuer`
+- A PostgreSQL server, with roles and databases created up front see
+  [postgresql.md](docs/postgresql.md)
 
 ## Usage
 
@@ -38,10 +40,8 @@ helm upgrade --install -n <your namespace> vllm . --values values.<env>.yaml
 
 where `<your namespace>` is your Kubernetes namespace.
 
-Components have no enforced apply ordering: PostgreSQL, Authentik, OpenWebUI, the
-gateway, and the models reconcile independently, and pods restart until their
-dependencies are ready. The init job runs as a `post-install,post-upgrade` Helm
-hook, after the rest of the release is applied.
+The init job runs as a `post-install,post-upgrade` Helm hook, after the rest of the
+release is applied.
 
 To preview the rendered manifests before applying:
 
