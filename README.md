@@ -19,7 +19,7 @@ The chart only creates custom resources that rely on these systems being install
 
 The repository contains a [`justfile`](justfile) to automate routine commands.
 You may use it as reference, or run it with `just` (by default, just will list available recipes).
-See [CONTRIBUTING.md](CONTRIBUTING.md) for more information.
+See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for more information.
 
 ### Helm (Kubernetes)
 
@@ -65,8 +65,10 @@ models:
     fullName: "Qwen/Qwen2.5-Omni-7B-AWQ" # name of the hosted model on huggingface
     internal: true # true means this is a model hosted by us, false would be for forwarding to external apis (experimental)
     nodeType: "A100" # the type of GPU to use
-    apiKey: # the API key to use for external APIs, if not hosted by us
-    image: # the vllm image to use for hosting the model, can be left empty
+    apiKey: # required: the API key to use for external APIs, if not hosted by us.
+    image: # optional: the vllm image to use for hosting the model
+      # repository:
+      # tag:
     cacheDir: # the directory for the vllm cache (leaving this empty should work in most cases)
       # path: /myhome
       # claimName: # the PVC claim to mount the cache to. On runai, use something like `pvc-<project>-home` (e.g. `pvc-codev-ralf-home`)
