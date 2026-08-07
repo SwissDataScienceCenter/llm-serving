@@ -79,7 +79,7 @@ deploy namespace release values_file:
 
 # init roles and databases. psql prompts for the admin password.
 [group('chart')]
-db-bootstrap host admin_user="postgres" openwebui_db="openwebui" authentik_db="authentik":
+db-bootstrap host admin_user="postgres" openwebui_db="vllm-openwebui" authentik_db="vllm-authentik":
     #!/usr/bin/env bash
     set -eu
     : "${OPENWEBUI_PG_PASSWORD_FILE:?not set, see .tpl.env}"
