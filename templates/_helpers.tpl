@@ -24,6 +24,10 @@ Base name for every resource of one model.
 
 Usage: {{ include "model.fullname" (merge (dict "modelName" $name) $) }}
 */}}
+{{- define "initjob.fullname" -}}
+  {{- printf "%s-init" .Release.Name -}}
+{{- end -}}
+
 {{- define "model.fullname" -}}
   {{- printf "%s-model-%s" .Release.Name .modelName -}}
 {{- end -}}
