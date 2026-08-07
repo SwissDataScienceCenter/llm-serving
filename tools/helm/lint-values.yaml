@@ -15,13 +15,20 @@ openwebui:
     password: dummy
 initJob:
   image: {}
-# One model so `helm template` actually renders templates/models and the per-model
-# envoy objects; without it every `range .Values.models` iterates zero times.
 models:
   lint:
     fullName: org/lint-model
     internal: true
     apiKey: dummy
+    resources:
+      requests: { cpu: 1, memory: 1G }
+      limits: { cpu: 2, memory: 2G }
+  # exercises the external-claim branch (persistence off, no cacheDir.path)
+  lint-byoc:
+    fullName: org/lint-byoc
+    internal: true
+    apiKey: dummy
+    cacheDir: { claimName: pvc-example-home }
     resources:
       requests: { cpu: 1, memory: 1G }
       limits: { cpu: 2, memory: 2G }

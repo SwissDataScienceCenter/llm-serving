@@ -74,7 +74,7 @@ spec:
             name: pvc-cache
             subPath: {{ $.Values.environment | default "." }}/model_cache/
     {{- else if (and $cacheDir $cacheDir.claimName) }}
-          - mountPath: {{ $cacheDir.path }}
+          - mountPath: {{ $cacheDir.path | default "/myhome" }}
             name: pvc-cache
             subPath: {{ $.Values.environment | default "." }}/model_cache
     {{- end }}
@@ -225,7 +225,7 @@ spec:
             name: pvc-cache
             subPath: {{ $.Values.environment | default "." }}/model_cache/
     {{- else if (and $cacheDir $cacheDir.claimName) }}
-          - mountPath: {{ $cacheDir.path }}
+          - mountPath: {{ $cacheDir.path | default "/myhome" }}
             name: pvc-cache
             subPath: {{ $.Values.environment | default "." }}/model_cache
     {{- end }}
