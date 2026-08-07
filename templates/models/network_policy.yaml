@@ -4,7 +4,7 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ $.Release.Name }}-model-{{ $name }}
+  name: {{ include "model.fullname" (merge (dict "modelName" $name) $) }}
 spec:
   podSelector:
     matchLabels:

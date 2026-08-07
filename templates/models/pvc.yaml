@@ -1,13 +1,12 @@
 {{- range $name, $model := .Values.models }}
-  {{- /* These sub-maps are optional in values.yaml; default them so a missing
-  key renders empty instead of failing with a nil pointer. */}}
+  {{- /* default optional sub-maps so a missing key does not fail. */}}
   {{- $persistence := $model.persistence | default dict }}
   {{- if and $model.internal $persistence.enabled }}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ $.Release.Name }}-model-{{ $name }}-cache
+  name: {{ include "model.fullname" (merge (dict "modelName" $name) $) }}-cache
   labels:
     app: model-{{ $name }}
     release: {{ $.Release.Name }}

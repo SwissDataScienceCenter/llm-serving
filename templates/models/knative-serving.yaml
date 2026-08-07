@@ -3,6 +3,7 @@
   {{- $persistence := $model.persistence | default dict }}
   {{- $image := $model.image | default dict }}
   {{- $cacheDir := $model.cacheDir | default dict }}
+  {{- $fullname := include "model.fullname" (merge (dict "modelName" $name) $) }}
   {{- if $model.dummy }}
 ---
 apiVersion: serving.knative.dev/v1
@@ -14,7 +15,7 @@ metadata:
     networking.knative.dev/visibility: cluster-local
     release: {{ $.Release.Name }}
     heritage: {{ $.Release.Service }}
-  name: {{ $.Release.Name }}-model-{{ $name }}
+  name: {{ $fullname }}
 spec:
   template:
     metadata:
@@ -101,7 +102,7 @@ spec:
       volumes:
         - name: pvc-cache
           persistentVolumeClaim:
-            claimName: {{ if $persistence.enabled }}{{ $.Release.Name }}-model-{{ $name }}-cache{{ else }}{{ $cacheDir.claimName }}{{ end }}
+            claimName: {{ if $persistence.enabled }}{{ $fullname }}-cache{{ else }}{{ $cacheDir.claimName }}{{ end }}
     {{- end }}
   traffic:
     - latestRevision: true
@@ -117,7 +118,7 @@ metadata:
     networking.knative.dev/visibility: cluster-local
     release: {{ $.Release.Name }}
     heritage: {{ $.Release.Service }}
-  name: {{ $.Release.Name }}-model-{{ $name }}
+  name: {{ $fullname }}
 spec:
   template:
     metadata:
@@ -175,7 +176,7 @@ spec:
             - name: VLLM_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ $.Release.Name }}-model-{{ $name }}
+                  name: {{ $fullname }}
                   key: apiKey
     {{- if or $persistence.enabled $cacheDir }}
             - name: VLLM_CACHE_ROOT
@@ -246,7 +247,7 @@ spec:
       volumes:
         - name: pvc-cache
           persistentVolumeClaim:
-            claimName: {{ if $persistence.enabled }}{{ $.Release.Name }}-model-{{ $name }}-cache{{ else }}{{ $cacheDir.claimName }}{{ end }}
+            claimName: {{ if $persistence.enabled }}{{ $fullname }}-cache{{ else }}{{ $cacheDir.claimName }}{{ end }}
     {{- end }}
       timeoutSeconds: 600
       responseStartTimeoutSeconds: 600
