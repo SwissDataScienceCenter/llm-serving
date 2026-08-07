@@ -1,25 +1,25 @@
 {{- if .Values.envoy.enabled }}
   {{- range $name, $model := .Values.models }}
+    {{- $fullname := include "model.fullname" (merge (dict "modelName" $name) $) }}
     {{- if or $model.internal (and (not $model.internal) $model.apiUrl) }}
 ---
 apiVersion: aigateway.envoyproxy.io/v1alpha1
 kind: BackendSecurityPolicy
 metadata:
-  name: {{ $.Release.Name }}-backend-security-{{ $name }}
+  name: {{ $fullname }}-security
   namespace: {{ $.Release.Namespace }}
   labels:
     app: model-{{ $name }}
     release: {{ $.Release.Name }}
-    test: test
 spec:
   type: APIKey
   targetRefs:
     - group: aigateway.envoyproxy.io
       kind: AIServiceBackend
-      name: {{ include "envoy.backendName" (merge (dict "modelName" $name) $) }}
+      name: {{ $fullname }}
   apiKey:
     secretRef:
-      name: {{ $.Release.Name }}-model-{{ $name }}
+      name: {{ $fullname }}
     {{- end }}
   {{- end }}
 {{- end }}
