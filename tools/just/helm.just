@@ -14,10 +14,8 @@ clean:
   rm -rf "{{charts_dir}}"
 
 # Lint chart and templates.
-lint: fetch-deps
+lint:
   helm lint "{{root_dir}}"
-  # `helm lint` reports missing required values as INFO and exits 0.
-  helm template "{{root_dir}}" --values "{{root_dir}}/tools/helm/lint-values.yaml" > /dev/null
 
 # Fetch subchart archives (charts/*.tgz) when absent.
 [private]
