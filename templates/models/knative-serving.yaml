@@ -14,7 +14,7 @@ metadata:
     networking.knative.dev/visibility: cluster-local
     release: {{ $.Release.Name }}
     heritage: {{ $.Release.Service }}
-  name: model-{{ $name }}
+  name: {{ $.Release.Name }}-model-{{ $name }}
 spec:
   template:
     metadata:
@@ -117,7 +117,7 @@ metadata:
     networking.knative.dev/visibility: cluster-local
     release: {{ $.Release.Name }}
     heritage: {{ $.Release.Service }}
-  name: model-{{ $name }}
+  name: {{ $.Release.Name }}-model-{{ $name }}
 spec:
   template:
     metadata:
@@ -175,7 +175,7 @@ spec:
             - name: VLLM_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: vllm-secret-{{ $name }}
+                  name: {{ $.Release.Name }}-model-{{ $name }}
                   key: apiKey
     {{- if or $persistence.enabled $cacheDir }}
             - name: VLLM_CACHE_ROOT

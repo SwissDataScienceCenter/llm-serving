@@ -12,7 +12,7 @@ spec:
       group: gateway.networking.k8s.io
   rules:
   - backendRefs:
-      - name: openwebui
+      - name: {{ .Release.Name }}-openwebui
         namespace: {{ .Release.Namespace }}
         port: 8080
   

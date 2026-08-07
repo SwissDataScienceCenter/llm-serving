@@ -21,7 +21,7 @@ spec:
       initContainers:
         - name: check-openwebui
           image: alpine/curl:latest
-          command: ["sh", "-c", "until curl -f 'http://openwebui.{{ .Release.Namespace }}.svc.cluster.local:8080/health'; do echo waiting for openwebui; sleep 2; done"]
+          command: ["sh", "-c", "until curl -f 'http://{{ .Release.Name }}-openwebui.{{ .Release.Namespace }}.svc.cluster.local:8080/health'; do echo waiting for openwebui; sleep 2; done"]
       containers:
         - name: init-deployment
           image: {{ .Values.initJob.image.repository | default "ghcr.io/swissdatasciencecenter/llm-serving/init" }}:{{ .Values.initJob.image.tag | default .Chart.AppVersion }}
@@ -31,7 +31,7 @@ spec:
             - name: INIT_OPEN_WEBUI__ADMIN_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: init-secret
+                  name: {{ .Release.Name }}-init
                   key: OPENWEBUI_ADMIN_PASSWORD
             - name: CONFIG_PATH
               value: /svc/config.toml
@@ -43,7 +43,7 @@ spec:
               cpu: 1
               memory: 2Gi
           volumeMounts:
-            - name: init-secret
+            - name: {{ .Release.Name }}-init
               mountPath: /svc/config.toml
               subPath: config.toml
 {{- with .Values.global.imagePullSecrets }}
@@ -51,6 +51,6 @@ spec:
         {{- toYaml . | nindent 8 }}
 {{- end }}
       volumes:
-        - name: init-secret
+        - name: {{ .Release.Name }}-init
           secret:
             secretName: init-secret

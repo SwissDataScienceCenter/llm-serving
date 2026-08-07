@@ -4,11 +4,12 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: model-{{ $name }}
+  name: {{ $.Release.Name }}-model-{{ $name }}
 spec:
   podSelector:
     matchLabels:
       app: model-{{ $name }}
+      release: {{ $.Release.Name }}
   policyTypes:
     - Ingress
   ingress:

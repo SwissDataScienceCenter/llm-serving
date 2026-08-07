@@ -2,7 +2,7 @@
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: SecurityPolicy
 metadata:
-  name: authentik-jwks
+  name: {{ .Release.Name }}-authentik-jwks
   namespace: {{ .Release.Namespace }}
 spec:
   targetRef:

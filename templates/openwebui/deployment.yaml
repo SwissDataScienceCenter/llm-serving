@@ -12,10 +12,12 @@ spec:
   selector:
     matchLabels:
       app: openwebui
+      release: {{ .Release.Name }}
   template:
     metadata:
       labels:
         app: openwebui
+        release: {{ .Release.Name }}
     spec:
       containers:
         - name: user-container
@@ -35,7 +37,7 @@ spec:
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
-                  name: postgres-secret
+                  name: {{ .Release.Name }}-postgres
                   key: OPENWEBUI_DATABASE_URL
             - name: ENABLE_OAUTH_SIGNUP
               value: "true"
@@ -46,7 +48,7 @@ spec:
             - name: OAUTH_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: openwebui-oauth
+                  name: {{ .Release.Name }}-openwebui-oauth
                   key: OAUTH_CLIENT_SECRET
             - name: OAUTH_ADMIN_ROLES
               value: gateway admins

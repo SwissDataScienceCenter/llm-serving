@@ -14,7 +14,7 @@ spec:
   endpoints:
       {{- if $model.internal }}
     - fqdn:
-        hostname: model-{{ $name }}.{{ $.Release.Namespace }}.svc.cluster.local
+        hostname: {{ $.Release.Name }}-model-{{ $name }}.{{ $.Release.Namespace }}.svc.cluster.local
         port: 80
       {{- else if $model.apiUrl }}
     - fqdn:
