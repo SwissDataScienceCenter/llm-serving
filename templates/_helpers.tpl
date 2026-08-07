@@ -13,13 +13,15 @@ OpenWebUI full name.
 {{- end -}}
 
 {{/*
-Telemetry bridge full name
+
+Telemetry full name.
 */}}
 {{- define "telemetry.fullname" -}}
-  {{- printf "%s-otlp-openmeter-bridge" .Release.Name -}}
+  {{- printf "%s-telemetry" .Release.Name -}}
 {{- end -}}
 
 {{/*
+
 Init job full name.
 */}}
 {{- define "initjob.fullname" -}}
