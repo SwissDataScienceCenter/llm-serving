@@ -5,10 +5,6 @@ appVersion: latest
 description: Helm chart for vLLM inference on vanilla Kubernetes
 type: application
 dependencies:
-  - name: postgresql
-    version: 18.x
-    repository: https://charts.bitnami.com/bitnami
-    condition: postgresql.enabled
   - name: authentik
     version: 2026.x
     repository: https://goauthentik.github.io/helm

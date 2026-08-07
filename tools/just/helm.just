@@ -9,8 +9,9 @@ charts_dir := root_dir / "charts"
 default:
     just --list helm
 
+# Remove fetched subchart archives.
 clean:
-  rm "{{charts_dir}}"/*
+  rm -rf "{{charts_dir}}"
 
 # Lint chart and templates.
 lint:
@@ -22,7 +23,6 @@ fetch-deps:
     #!/usr/bin/env bash
     set -eu
     cd "{{root_dir}}"
-    helm repo add bitnami https://charts.bitnami.com/bitnami
     helm repo add authentik https://goauthentik.github.io/helm
     helm dependency build
 

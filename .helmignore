@@ -2,14 +2,13 @@
 # This supports shell glob matching, relative path matching, and
 # negation (prefixed with !). Only one pattern per line.
 .DS_Store
-scripts
-otlp-openmeter-bridge
 .github
+# Sources for the images the chart references (built separately, not part of the chart)
+src
 # Dev tooling and docs (not part of the chart)
 tools
 docs
 justfile
-CONTRIBUTING.md
 .devenv/
 .direnv/
 .output/
@@ -38,3 +37,9 @@ values.*.yaml
 .idea/
 *.tmproj
 
+# agentic files
+
+.agents/
+AGENTS.md
+.claude/
+CLAUDE.md

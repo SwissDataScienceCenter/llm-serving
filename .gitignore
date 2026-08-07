@@ -1,7 +1,12 @@
 **/charts/*.tgz
 config.toml
-*.dec.*
-.env
+*.env
 .devenv/
 .direnv/
 .output/
+
+# agentic setup
+.agents/
+.claude/
+AGENTS.md
+CLAUDE.md

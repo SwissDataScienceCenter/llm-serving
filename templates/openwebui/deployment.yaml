@@ -32,13 +32,11 @@ spec:
               value: "true"
             - name: OPENAI_API_BASE_URL
               value: https://gateway.{{ .Values.envoy.baseDomain }}/v1
-  {{- if .Values.openwebui.postgres }}
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
                   name: postgres-secret
                   key: OPENWEBUI_DATABASE_URL
-  {{- end }}
             - name: ENABLE_OAUTH_SIGNUP
               value: "true"
             - name: ENABLE_LOGIN_FORM
@@ -46,7 +44,10 @@ spec:
             - name: OAUTH_CLIENT_ID
               value: {{ .Values.authentik.oauthApp.clientId | required ".Values.authentik.oauthApp.clientId is required" }}
             - name: OAUTH_CLIENT_SECRET
-              value: {{ .Values.authentik.oauthApp.clientSecret | required ".Values.authentik.oauthApp.clientSecret is required" }}
+              valueFrom:
+                secretKeyRef:
+                  name: openwebui-oauth
+                  key: OAUTH_CLIENT_SECRET
             - name: OAUTH_ADMIN_ROLES
               value: gateway admins
             - name: OPENID_PROVIDER_URL
@@ -81,7 +82,8 @@ spec:
               path: /health
               port: 8080
             periodSeconds: 10
-            failureThreshold: 1
+            # Liveness should catch a deadlocked process, not one slow health check.
+            failureThreshold: 3
           resources:
             requests:
               cpu: {{ .Values.openwebui.resources.requests.cpu | quote }}

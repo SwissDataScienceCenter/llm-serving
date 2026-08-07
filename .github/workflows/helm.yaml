@@ -11,6 +11,11 @@ jobs:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-nix
 
+      - name: Render templates with dummy values
+        run: |
+          nix develop --no-pure-eval --accept-flake-config "./tools/nix#ci" --command \
+            just helm::template --values tools/helm/lint-values.yaml
+
       - name: Log in to GHCR
         env:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}

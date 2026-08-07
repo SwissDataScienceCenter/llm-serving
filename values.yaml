@@ -1,15 +1,18 @@
 envoy:
   enabled: true
-  name: vllm
   baseDomain:
   clusterissuer: letsencrypt
-  gatewayclass:
   clientBufferLimit: 50Mi
   security:
     jwksUri:
   gatewayClass:
     enabled: false
     name:
+  # Overrides for the proxy Envoy Gateway manages. Unset means use its defaults.
+  # {annotations: {...}} also switches the proxy Service to LoadBalancer.
+  service:
+  # {requests: {...}, limits: {...}} for the proxy container.
+  resources:
   telemetry:
     enabled: false
     # OpenMeter API endpoint for billing (required when telemetry is enabled)
@@ -45,7 +48,14 @@ openwebui:
     enabled: false
     storageClass: default
     size: 10Gi
+    accessMode: # defaults to ReadWriteOnce
+  # Mount an existing claim instead of creating one, used when persistence is disabled.
+  dataClaimName:
+  # External PostgreSQL server: the database and role must exist before install.
   postgres:
+    host:
+    # Database name, and the name of the role that owns it.
+    database: vllm-openwebui
     password:
   admin:
     user: admin
@@ -69,36 +79,15 @@ initJob:
     tag: "" # defaults to .Chart.AppVersion
     pullPolicy: IfNotPresent
 
-postgresql:
-  enabled: true
-  auth:
-    postgresPassword:
-    database: postgres
-    username: postgres
-  primary:
-    serviceAccount:
-      create: false
-    resources:
-      requests:
-        cpu: 500m
-        memory: 1Gi
-      limits:
-        cpu: 2
-        memory: 4Gi
-    persistence:
-      enabled: false
-    tolerations: []
-    affinity: {}
-    initdb:
-      scriptsConfigMap: postgres-initdb-scripts
-
 authentik:
   enabled: true
   authentik:
     postgresql:
+      host:
       port: 5432
-      name: authentik
-      user: authentik
+      sslmode: require
+      name: vllm-authentik
+      user: vllm-authentik
       password:
 
     secret_key:

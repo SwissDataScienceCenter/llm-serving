@@ -2,6 +2,7 @@
 authentik:
   authentik:
     postgresql:
+      host: pg.example.invalid
       password: dummy
   oauthApp:
     clientId: dummy
@@ -10,9 +11,7 @@ openwebui:
   admin:
     password: dummy
   postgres:
+    host: pg.example.invalid
     password: dummy
-postgresql:
-  auth:
-    postgresPassword: dummy
 initJob:
   image: {}

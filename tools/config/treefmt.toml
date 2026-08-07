@@ -6,7 +6,6 @@ excludes = [
   "external/*",
   # Helm templates are not valid YAML (Go template syntax).
   "templates/**",
-  "*.enc.*",
 ]
 
 [formatter.prettier]
