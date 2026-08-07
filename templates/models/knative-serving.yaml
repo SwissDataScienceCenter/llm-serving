@@ -4,6 +4,7 @@
   {{- $image := $model.image | default dict }}
   {{- $cacheDir := $model.cacheDir | default dict }}
   {{- $fullname := include "model.fullname" (merge (dict "modelName" $name) $) }}
+  {{- $cachePath := $cacheDir.path | default "/myhome" }}
   {{- if $model.dummy }}
 ---
 apiVersion: serving.knative.dev/v1
@@ -70,11 +71,11 @@ spec:
     {{- end }}
           volumeMounts:
     {{- if $persistence.enabled }}
-          - mountPath: {{ $cacheDir.path | default "/myhome" }}
+          - mountPath: {{ $cachePath }}
             name: pvc-cache
             subPath: {{ $.Values.environment | default "." }}/model_cache/
     {{- else if (and $cacheDir $cacheDir.claimName) }}
-          - mountPath: {{ $cacheDir.path | default "/myhome" }}
+          - mountPath: {{ $cachePath }}
             name: pvc-cache
             subPath: {{ $.Values.environment | default "." }}/model_cache
     {{- end }}
@@ -180,7 +181,7 @@ spec:
                   key: apiKey
     {{- if or $persistence.enabled $cacheDir }}
             - name: VLLM_CACHE_ROOT
-              value: {{ $cacheDir.path | default "/myhome" }}
+              value: {{ $cachePath }}
     {{- end }}
           startupProbe:
             httpGet:
@@ -218,14 +219,14 @@ spec:
           ports:
             - containerPort: 8000
               protocol: TCP
-          workingDir: {{ $cacheDir.path | default "/myhome" }}
+          workingDir: {{ $cachePath }}
           volumeMounts:
     {{- if $persistence.enabled }}
-          - mountPath: {{ $cacheDir.path | default "/myhome" }}
+          - mountPath: {{ $cachePath }}
             name: pvc-cache
             subPath: {{ $.Values.environment | default "." }}/model_cache/
     {{- else if (and $cacheDir $cacheDir.claimName) }}
-          - mountPath: {{ $cacheDir.path | default "/myhome" }}
+          - mountPath: {{ $cachePath }}
             name: pvc-cache
             subPath: {{ $.Values.environment | default "." }}/model_cache
     {{- end }}
