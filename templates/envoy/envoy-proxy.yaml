@@ -52,7 +52,7 @@ spec:
             - type: OpenTelemetry
               openTelemetry:
                 port: 4317
-                host: "otlp-openmeter-bridge.{{ .Release.Namespace }}.svc.cluster.local"
+                host: "{{ include "telemetry.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local"
   {{- end }}
   {{- if or .Values.envoy.resources .Values.envoy.service }}
   provider:

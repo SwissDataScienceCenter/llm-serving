@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ .Release.Name }}-openwebui-data
+  name: {{ include "openwebui.fullname" . }}-data
   labels:
     app: openwebui
     release: {{ .Release.Name }}

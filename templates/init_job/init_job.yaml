@@ -1,3 +1,4 @@
+{{- if .Values.openwebui.enabled }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -21,7 +22,7 @@ spec:
       initContainers:
         - name: check-openwebui
           image: alpine/curl:latest
-          command: ["sh", "-c", "until curl -f 'http://{{ .Release.Name }}-openwebui.{{ .Release.Namespace }}.svc.cluster.local:8080/health'; do echo waiting for openwebui; sleep 2; done"]
+          command: ["sh", "-c", "until curl -f 'http://{{ include "openwebui.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:8080/health'; do echo waiting for openwebui; sleep 2; done"]
       containers:
         - name: init-deployment
           image: {{ .Values.initJob.image.repository | default "ghcr.io/swissdatasciencecenter/llm-serving/init" }}:{{ .Values.initJob.image.tag | default .Chart.AppVersion }}
@@ -46,11 +47,12 @@ spec:
             - name: {{ .Release.Name }}-init
               mountPath: /svc/config.toml
               subPath: config.toml
-{{- with .Values.global.imagePullSecrets }}
+  {{- with .Values.global.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
-{{- end }}
+  {{- end }}
       volumes:
         - name: {{ .Release.Name }}-init
           secret:
             secretName: init-secret
+{{- end }}

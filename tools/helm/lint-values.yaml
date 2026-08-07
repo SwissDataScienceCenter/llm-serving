@@ -1,3 +1,8 @@
+envoy:
+  telemetry:
+    enabled: true
+    openmeterUrl: https://openmeter.example.invalid
+    bearerToken: dummy
 # Dummy values so `helm template` (just lint) can render required fields.
 authentik:
   authentik:
@@ -13,8 +18,6 @@ openwebui:
   postgres:
     host: pg.example.invalid
     password: dummy
-initJob:
-  image: {}
 models:
   lint:
     fullName: org/lint-model

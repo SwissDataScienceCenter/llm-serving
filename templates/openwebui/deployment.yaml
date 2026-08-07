@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}-openwebui
+  name: {{ include "openwebui.fullname" . }}
   labels:
     app: openwebui
     release: {{ .Release.Name }}
@@ -48,7 +48,7 @@ spec:
             - name: OAUTH_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Release.Name }}-openwebui-oauth
+                  name: {{ include "openwebui.fullname" . }}-oauth
                   key: OAUTH_CLIENT_SECRET
             - name: OAUTH_ADMIN_ROLES
               value: gateway admins
@@ -118,7 +118,7 @@ spec:
   {{- if .Values.openwebui.persistence.enabled }}
         - name: data
           persistentVolumeClaim:
-            claimName: {{ .Release.Name }}-openwebui-data
+            claimName: {{ include "openwebui.fullname" . }}-data
   {{- else if .Values.openwebui.dataClaimName }}
         - name: data
           persistentVolumeClaim:
