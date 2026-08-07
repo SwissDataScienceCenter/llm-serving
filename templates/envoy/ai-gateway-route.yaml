@@ -28,7 +28,7 @@ spec:
               name: x-ai-eg-model
               value: {{ $model.fullName }}
       backendRefs:
-        - name: {{ include "envoy.backendName" (merge (dict "modelName" $name) $) }}
+        - name: {{ include "model.fullname" (merge (dict "modelName" $name) $) }}
     {{- end }}
   {{- end }}
 {{- end }}

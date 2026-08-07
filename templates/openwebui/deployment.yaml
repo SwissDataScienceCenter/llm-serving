@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}-openwebui
+  name: {{ include "openwebui.fullname" . }}
   labels:
     app: openwebui
     release: {{ .Release.Name }}
@@ -12,10 +12,12 @@ spec:
   selector:
     matchLabels:
       app: openwebui
+      release: {{ .Release.Name }}
   template:
     metadata:
       labels:
         app: openwebui
+        release: {{ .Release.Name }}
     spec:
       containers:
         - name: user-container
@@ -35,7 +37,7 @@ spec:
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
-                  name: postgres-secret
+                  name: {{ include "openwebui.fullname" . }}-postgres
                   key: OPENWEBUI_DATABASE_URL
             - name: ENABLE_OAUTH_SIGNUP
               value: "true"
@@ -46,7 +48,7 @@ spec:
             - name: OAUTH_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: openwebui-oauth
+                  name: {{ include "openwebui.fullname" . }}-oauth
                   key: OAUTH_CLIENT_SECRET
             - name: OAUTH_ADMIN_ROLES
               value: gateway admins
@@ -116,7 +118,7 @@ spec:
   {{- if .Values.openwebui.persistence.enabled }}
         - name: data
           persistentVolumeClaim:
-            claimName: {{ .Release.Name }}-openwebui-data
+            claimName: {{ include "openwebui.fullname" . }}-data
   {{- else if .Values.openwebui.dataClaimName }}
         - name: data
           persistentVolumeClaim:

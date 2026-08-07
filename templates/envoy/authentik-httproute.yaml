@@ -1,3 +1,4 @@
+{{- if and .Values.envoy.enabled .Values.authentik.enabled }}
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -16,3 +17,4 @@ spec:
         namespace: {{ .Release.Namespace }}
         port: 80
   
+{{- end }}

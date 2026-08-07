@@ -3,6 +3,8 @@
   {{- $persistence := $model.persistence | default dict }}
   {{- $image := $model.image | default dict }}
   {{- $cacheDir := $model.cacheDir | default dict }}
+  {{- $fullname := include "model.fullname" (merge (dict "modelName" $name) $) }}
+  {{- $cachePath := $cacheDir.path | default "/myhome" }}
   {{- if $model.dummy }}
 ---
 apiVersion: serving.knative.dev/v1
@@ -14,7 +16,7 @@ metadata:
     networking.knative.dev/visibility: cluster-local
     release: {{ $.Release.Name }}
     heritage: {{ $.Release.Service }}
-  name: model-{{ $name }}
+  name: {{ $fullname }}
 spec:
   template:
     metadata:
@@ -69,11 +71,11 @@ spec:
     {{- end }}
           volumeMounts:
     {{- if $persistence.enabled }}
-          - mountPath: {{ $cacheDir.path | default "/myhome" }}
+          - mountPath: {{ $cachePath }}
             name: pvc-cache
             subPath: {{ $.Values.environment | default "." }}/model_cache/
     {{- else if (and $cacheDir $cacheDir.claimName) }}
-          - mountPath: {{ $cacheDir.path }}
+          - mountPath: {{ $cachePath }}
             name: pvc-cache
             subPath: {{ $.Values.environment | default "." }}/model_cache
     {{- end }}
@@ -101,7 +103,7 @@ spec:
       volumes:
         - name: pvc-cache
           persistentVolumeClaim:
-            claimName: {{ if $persistence.enabled }}{{ $.Release.Name }}-model-{{ $name }}-cache{{ else }}{{ $cacheDir.claimName }}{{ end }}
+            claimName: {{ if $persistence.enabled }}{{ $fullname }}-cache{{ else }}{{ $cacheDir.claimName }}{{ end }}
     {{- end }}
   traffic:
     - latestRevision: true
@@ -117,7 +119,7 @@ metadata:
     networking.knative.dev/visibility: cluster-local
     release: {{ $.Release.Name }}
     heritage: {{ $.Release.Service }}
-  name: model-{{ $name }}
+  name: {{ $fullname }}
 spec:
   template:
     metadata:
@@ -175,11 +177,11 @@ spec:
             - name: VLLM_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: vllm-secret-{{ $name }}
+                  name: {{ $fullname }}
                   key: apiKey
     {{- if or $persistence.enabled $cacheDir }}
             - name: VLLM_CACHE_ROOT
-              value: {{ $cacheDir.path | default "/myhome" }}
+              value: {{ $cachePath }}
     {{- end }}
           startupProbe:
             httpGet:
@@ -217,14 +219,14 @@ spec:
           ports:
             - containerPort: 8000
               protocol: TCP
-          workingDir: {{ $cacheDir.path | default "/myhome" }}
+          workingDir: {{ $cachePath }}
           volumeMounts:
     {{- if $persistence.enabled }}
-          - mountPath: {{ $cacheDir.path | default "/myhome" }}
+          - mountPath: {{ $cachePath }}
             name: pvc-cache
             subPath: {{ $.Values.environment | default "." }}/model_cache/
     {{- else if (and $cacheDir $cacheDir.claimName) }}
-          - mountPath: {{ $cacheDir.path }}
+          - mountPath: {{ $cachePath }}
             name: pvc-cache
             subPath: {{ $.Values.environment | default "." }}/model_cache
     {{- end }}
@@ -246,7 +248,7 @@ spec:
       volumes:
         - name: pvc-cache
           persistentVolumeClaim:
-            claimName: {{ if $persistence.enabled }}{{ $.Release.Name }}-model-{{ $name }}-cache{{ else }}{{ $cacheDir.claimName }}{{ end }}
+            claimName: {{ if $persistence.enabled }}{{ $fullname }}-cache{{ else }}{{ $cacheDir.claimName }}{{ end }}
     {{- end }}
       timeoutSeconds: 600
       responseStartTimeoutSeconds: 600

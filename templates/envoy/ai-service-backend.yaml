@@ -1,11 +1,12 @@
 {{- if .Values.envoy.enabled }}
   {{- range $name, $model := .Values.models }}
+    {{- $fullname := include "model.fullname" (merge (dict "modelName" $name) $) }}
     {{- if or $model.internal (and (not $model.internal) $model.apiUrl) }}
 ---
 apiVersion: aigateway.envoyproxy.io/v1alpha1
 kind: AIServiceBackend
 metadata:
-  name: {{ include "envoy.backendName" (merge (dict "modelName" $name) $) }}
+  name: {{ $fullname }}
   namespace: {{ $.Release.Namespace }}
   labels:
     app: model-{{ $name }}
@@ -15,7 +16,7 @@ spec:
     name: OpenAI
     version: "v1"
   backendRef:
-    name: {{ include "envoy.backendName" (merge (dict "modelName" $name) $) }}
+    name: {{ $fullname }}
     kind: Backend
     group: gateway.envoyproxy.io
     {{- end }}

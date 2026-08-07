@@ -1,7 +1,8 @@
+{{- if .Values.openwebui.enabled }}
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: "{{ .Release.Name }}-init-deployment"
+  name: "{{ include "initjob.fullname" . }}"
   labels:
     heritage: {{ .Release.Service }}
     release: {{ .Release.Name }}
@@ -12,7 +13,7 @@ spec:
   backoffLimit: 6
   template:
     metadata:
-      name: "{{.Release.Name}}-init-deployment"
+      name: "{{ include "initjob.fullname" . }}"
       labels:
         heritage: {{ .Release.Service }}
         release: {{ .Release.Name }}
@@ -21,17 +22,17 @@ spec:
       initContainers:
         - name: check-openwebui
           image: alpine/curl:latest
-          command: ["sh", "-c", "until curl -f 'http://openwebui.{{ .Release.Namespace }}.svc.cluster.local:8080/health'; do echo waiting for openwebui; sleep 2; done"]
+          command: ["sh", "-c", "until curl -f 'http://{{ include "openwebui.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:8080/health'; do echo waiting for openwebui; sleep 2; done"]
       containers:
-        - name: init-deployment
-          image: {{ .Values.initJob.image.repository | default "ghcr.io/swissdatasciencecenter/llm-serving/init" }}:{{ .Values.initJob.image.tag | default .Chart.AppVersion }}
-          imagePullPolicy: {{ .Values.initJob.image.pullPolicy | default "IfNotPresent" }}
+        - name: init
+          image: {{ .Values.initJob.image.repository }}:{{ .Values.initJob.image.tag | default .Chart.AppVersion }}
+          imagePullPolicy: {{ .Values.initJob.image.pullPolicy }}
           args: ["init"]
           env:
             - name: INIT_OPEN_WEBUI__ADMIN_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: init-secret
+                  name: {{ include "initjob.fullname" . }}
                   key: OPENWEBUI_ADMIN_PASSWORD
             - name: CONFIG_PATH
               value: /svc/config.toml
@@ -43,14 +44,15 @@ spec:
               cpu: 1
               memory: 2Gi
           volumeMounts:
-            - name: init-secret
+            - name: config
               mountPath: /svc/config.toml
               subPath: config.toml
-{{- with .Values.global.imagePullSecrets }}
+  {{- with .Values.global.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
-{{- end }}
+  {{- end }}
       volumes:
-        - name: init-secret
+        - name: config
           secret:
-            secretName: init-secret
+            secretName: {{ include "initjob.fullname" . }}
+{{- end }}

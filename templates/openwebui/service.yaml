@@ -1,7 +1,8 @@
+{{- if .Values.openwebui.enabled }}
 apiVersion: v1
 kind: Service
 metadata:
-  name: openwebui
+  name: {{ include "openwebui.fullname" . }}
   labels:
     app: openwebui
     release: {{ .Release.Name }}
@@ -9,9 +10,11 @@ metadata:
 spec:
   selector:
     app: openwebui
+    release: {{ .Release.Name }}
   ports:
     - protocol: TCP
       port: 8080
       targetPort: 8080
       name: http
   type: ClusterIP
+{{- end }}

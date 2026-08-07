@@ -31,7 +31,7 @@ template *args: fetch-deps
     #!/usr/bin/env bash
     set -eu
     cd "{{root_dir}}"
-    helm template . "$@"
+    helm template "$@" .
 
 # Package the chart for a release tag (e.g. v0.3.0) and push it to GHCR as an OCI artifact.
 publish tag: fetch-deps

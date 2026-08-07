@@ -1,19 +1,40 @@
-{{- define "sanitizeEnvVarName" -}}
-{{ regexReplaceAll "[^A-Z0-9]+" (upper .) "_" }}
-{{- end -}}
-
 {{/*
-Envoy Gateway full name
+Envoy Gateway full name.
 */}}
 {{- define "envoy.fullname" -}}
-  {{- printf "%s-envoy" .Release.Name | trunc 63 | trimSuffix "-" -}}
+  {{- printf "%s-envoy" .Release.Name -}}
 {{- end -}}
 
 {{/*
-Backend name for a specific model
+OpenWebUI full name.
 */}}
-{{- define "envoy.backendName" -}}
-  {{- printf "%s-%s" (include "envoy.fullname" .) .modelName | trunc 63 | trimSuffix "-" -}}
+{{- define "openwebui.fullname" -}}
+  {{- printf "%s-openwebui" .Release.Name -}}
+{{- end -}}
+
+{{/*
+
+Telemetry full name.
+*/}}
+{{- define "telemetry.fullname" -}}
+  {{- printf "%s-telemetry" .Release.Name -}}
+{{- end -}}
+
+{{/*
+
+Init job full name.
+*/}}
+{{- define "initjob.fullname" -}}
+  {{- printf "%s-init" .Release.Name -}}
+{{- end -}}
+
+{{/*
+Base name for every resource of one model.
+
+Usage: {{ include "model.fullname" (merge (dict "modelName" $name) $) }}
+*/}}
+{{- define "model.fullname" -}}
+  {{- printf "%s-model-%s" .Release.Name .modelName -}}
 {{- end -}}
 
 {{/*

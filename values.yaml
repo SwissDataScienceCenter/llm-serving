@@ -94,6 +94,7 @@ authentik:
     bootstrapPassword:
     bootstrapToken:
   blueprints:
+    # Override when two releases share a namespace.
     secrets:
       - authentik-blueprints
   server:

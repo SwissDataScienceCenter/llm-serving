@@ -4,7 +4,7 @@
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: ClientTrafficPolicy
 metadata:
-  name: client-buffer-limit
+  name: {{ include "envoy.fullname" . }}-client-buffer-limit
   namespace: {{ .Release.Namespace }}
 spec:
   targetRefs:

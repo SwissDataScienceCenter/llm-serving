@@ -1,3 +1,4 @@
+{{- if and .Values.envoy.enabled .Values.openwebui.enabled }}
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -12,7 +13,8 @@ spec:
       group: gateway.networking.k8s.io
   rules:
   - backendRefs:
-      - name: openwebui
+      - name: {{ include "openwebui.fullname" . }}
         namespace: {{ .Release.Namespace }}
         port: 8080
   
+{{- end }}
