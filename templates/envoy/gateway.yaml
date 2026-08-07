@@ -16,6 +16,7 @@ spec:
         certificateRefs:
           - kind: Secret
             name: {{ include "envoy.fullname" . }}-wildcard-https
+  {{- if .Values.openwebui.enabled }}
     - name: https-openwebui
       protocol: HTTPS
       port: 443
@@ -25,6 +26,8 @@ spec:
         certificateRefs:
           - kind: Secret
             name: {{ include "envoy.fullname" . }}-wildcard-https
+  {{- end }}
+  {{- if .Values.authentik.enabled }}
     - name: https-authentik
       protocol: HTTPS
       port: 443
@@ -39,4 +42,5 @@ spec:
       group: gateway.envoyproxy.io
       kind: EnvoyProxy
       name: {{ include "envoy.fullname" . }}
+  {{- end }}
 {{- end }}
