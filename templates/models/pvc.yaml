@@ -1,5 +1,8 @@
 {{- range $name, $model := .Values.models }}
-  {{- if and $model.internal $model.persistence.enabled }}
+  {{- /* These sub-maps are optional in values.yaml; default them so a missing
+  key renders empty instead of failing with a nil pointer. */}}
+  {{- $persistence := $model.persistence | default dict }}
+  {{- if and $model.internal $persistence.enabled }}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -10,10 +13,10 @@ metadata:
     release: {{ $.Release.Name }}
 spec:
   accessModes:
-    - {{ $model.persistence.accessMode | default "ReadWriteOnce" }}
-  storageClassName: {{ $model.persistence.storageClass | default "default" }}
+    - {{ $persistence.accessMode | default "ReadWriteOnce" }}
+  storageClassName: {{ $persistence.storageClass | default "default" }}
   resources:
     requests:
-      storage: {{ $model.persistence.size | default "50Gi" }}
+      storage: {{ $persistence.size | default "50Gi" }}
   {{- end }}
 {{- end }}
