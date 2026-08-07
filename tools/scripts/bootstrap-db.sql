@@ -4,8 +4,8 @@
 -- CREATE DATABASE cannot run inside a DO block, so roles and databases both use this pattern rather than one each.
 -- %I quotes identifiers, so scoped names containing hyphens or capitals are safe.
 -- Each database is owned by a role of the same name.
-
-\set ON_ERROR_STOP on -- Aborts on first error.
+-- Aborts on first error.
+\set ON_ERROR_STOP on
 
 \getenv openwebui_db       OPENWEBUI_PG_DATABASE
 \getenv openwebui_password OPENWEBUI_PG_PASSWORD
