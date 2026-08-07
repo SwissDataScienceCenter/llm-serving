@@ -1,9 +1,6 @@
 envoy:
   telemetry:
     enabled: true
-    openmeterUrl: https://openmeter.example.invalid
-    bearerToken: dummy
-# Dummy values so `helm template` (just lint) can render required fields.
 authentik:
   authentik:
     postgresql:
@@ -19,19 +16,16 @@ openwebui:
     host: pg.example.invalid
     password: dummy
 models:
-  lint:
+  lint: &model
     fullName: org/lint-model
     internal: true
     apiKey: dummy
+    persistence: { enabled: true } # renders models/pvc.yaml and the chart-owned claim
     resources:
       requests: { cpu: 1, memory: 1G }
       limits: { cpu: 2, memory: 2G }
   # exercises the external-claim branch (persistence off, no cacheDir.path)
   lint-byoc:
-    fullName: org/lint-byoc
-    internal: true
-    apiKey: dummy
+    <<: *model
+    persistence: { enabled: false }
     cacheDir: { claimName: pvc-example-home }
-    resources:
-      requests: { cpu: 1, memory: 1G }
-      limits: { cpu: 2, memory: 2G }
