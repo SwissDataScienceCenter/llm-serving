@@ -1,4 +1,8 @@
 {{- range $name, $model := .Values.models }}
+  {{- /* default optional sub-maps so a missing key does not fail. */}}
+  {{- $persistence := $model.persistence | default dict }}
+  {{- $image := $model.image | default dict }}
+  {{- $cacheDir := $model.cacheDir | default dict }}
   {{- if $model.dummy }}
 ---
 apiVersion: serving.knative.dev/v1
@@ -64,12 +68,12 @@ spec:
               nvidia.com/gpu: {{ $model.resources.limits.gpu }}
     {{- end }}
           volumeMounts:
-    {{- if $model.persistence.enabled }}
-          - mountPath: {{ $model.cacheDir.path | default "/myhome" }}
+    {{- if $persistence.enabled }}
+          - mountPath: {{ $cacheDir.path | default "/myhome" }}
             name: pvc-cache
             subPath: {{ $.Values.environment | default "." }}/model_cache/
-    {{- else if (and $model.cacheDir $model.cacheDir.claimName) }}
-          - mountPath: {{ $model.cacheDir.path }}
+    {{- else if (and $cacheDir $cacheDir.claimName) }}
+          - mountPath: {{ $cacheDir.path }}
             name: pvc-cache
             subPath: {{ $.Values.environment | default "." }}/model_cache
     {{- end }}
@@ -93,11 +97,11 @@ spec:
       timeoutSeconds: 600
       responseStartTimeoutSeconds: 600
       idleTimeoutSeconds: 600
-    {{- if or $model.persistence.enabled (and $model.cacheDir $model.cacheDir.claimName) }}
+    {{- if or $persistence.enabled (and $cacheDir $cacheDir.claimName) }}
       volumes:
         - name: pvc-cache
           persistentVolumeClaim:
-            claimName: {{ if $model.persistence.enabled }}{{ $.Release.Name }}-model-{{ $name }}-cache{{ else }}{{ $model.cacheDir.claimName }}{{ end }}
+            claimName: {{ if $persistence.enabled }}{{ $.Release.Name }}-model-{{ $name }}-cache{{ else }}{{ $cacheDir.claimName }}{{ end }}
     {{- end }}
   traffic:
     - latestRevision: true
@@ -126,7 +130,7 @@ spec:
     spec:
       containers:
         - name: user-container
-          image: "{{ $model.image.repository | default "vllm/vllm-openai" }}:{{ $model.image.tag | default "latest" }}"
+          image: "{{ $image.repository | default "vllm/vllm-openai" }}:{{ $image.tag | default "latest" }}"
           imagePullPolicy: IfNotPresent
     {{- if not $model.defaultCommand}}
           command:
@@ -173,9 +177,9 @@ spec:
                 secretKeyRef:
                   name: vllm-secret-{{ $name }}
                   key: apiKey
-    {{- if or $model.persistence.enabled $model.cacheDir }}
+    {{- if or $persistence.enabled $cacheDir }}
             - name: VLLM_CACHE_ROOT
-              value: {{ $model.cacheDir.path | default "/myhome" }}
+              value: {{ $cacheDir.path | default "/myhome" }}
     {{- end }}
           startupProbe:
             httpGet:
@@ -213,14 +217,14 @@ spec:
           ports:
             - containerPort: 8000
               protocol: TCP
-          workingDir: {{ $model.cacheDir.path | default "/myhome" }}
+          workingDir: {{ $cacheDir.path | default "/myhome" }}
           volumeMounts:
-    {{- if $model.persistence.enabled }}
-          - mountPath: {{ $model.cacheDir.path | default "/myhome" }}
+    {{- if $persistence.enabled }}
+          - mountPath: {{ $cacheDir.path | default "/myhome" }}
             name: pvc-cache
             subPath: {{ $.Values.environment | default "." }}/model_cache/
-    {{- else if (and $model.cacheDir $model.cacheDir.claimName) }}
-          - mountPath: {{ $model.cacheDir.path }}
+    {{- else if (and $cacheDir $cacheDir.claimName) }}
+          - mountPath: {{ $cacheDir.path }}
             name: pvc-cache
             subPath: {{ $.Values.environment | default "." }}/model_cache
     {{- end }}
@@ -238,11 +242,11 @@ spec:
       affinity:
         {{- toYaml $.Values.global.affinity | nindent 8 }}
     {{- end }}
-    {{- if or $model.persistence.enabled (and $model.cacheDir $model.cacheDir.claimName) }}
+    {{- if or $persistence.enabled (and $cacheDir $cacheDir.claimName) }}
       volumes:
         - name: pvc-cache
           persistentVolumeClaim:
-            claimName: {{ if $model.persistence.enabled }}{{ $.Release.Name }}-model-{{ $name }}-cache{{ else }}{{ $model.cacheDir.claimName }}{{ end }}
+            claimName: {{ if $persistence.enabled }}{{ $.Release.Name }}-model-{{ $name }}-cache{{ else }}{{ $cacheDir.claimName }}{{ end }}
     {{- end }}
       timeoutSeconds: 600
       responseStartTimeoutSeconds: 600
