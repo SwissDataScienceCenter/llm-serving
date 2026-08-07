@@ -20,6 +20,15 @@ allowed to `CREATE ROLE` and `CREATE DATABASE`; on a managed or central server y
 to ask a DBA to run [bootstrap-db.sql](../tools/scripts/bootstrap-db.sql) instead. Either way
 it is safe to re-run: existing roles and databases are left untouched.
 
+> [!NOTE]
+>
+> The sql script sends the application passwords in `CREATE ROLE` statements, so connect over TLS.
+> The recipe does this for you. When running manually, use :
+>
+> ```bash
+> psql "postgresql://<admin>@<host>/postgres?sslmode=require" -f tools/scripts/bootstrap-db.sql
+> ```
+
 ## Values
 
 The postgres values must be specified for `authentik` and `openwebui`. They may use the same
