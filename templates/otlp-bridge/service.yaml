@@ -2,15 +2,14 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "telemetry.fullname" . }}
+  name: otlp-bridge
   namespace: {{ .Release.Namespace }}
   labels:
-    app: otlp-openmeter-bridge
+    app: otlp-bridge
     release: {{ .Release.Name }}
 spec:
   selector:
-    app: otlp-openmeter-bridge
-    release: {{ .Release.Name }}
+    app: otlp-bridge
   ports:
     - protocol: TCP
       port: 4317

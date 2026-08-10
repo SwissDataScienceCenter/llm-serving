@@ -15,13 +15,19 @@ envoy:
   resources:
   telemetry:
     enabled: false
-    # OpenMeter API endpoint for billing (required when telemetry is enabled)
-    openmeterUrl: ""
-    # Bearer token for authenticating with OpenMeter (always required when telemetry is enabled)
+    # Lago API endpoint for event ingestion (required when telemetry is enabled)
+    lagoUrl: ""
+    # Billable metric code for ingested events (default: genai.tokens)
+    metricCode: ""
+    # Fixed Lago customer ID for all ingested events
+    customerId: ""
+    # Lago organization slug for event routing
+    organizationSlug: ""
+    # Bearer token for authenticating with Lago (always required when telemetry is enabled)
     bearerToken: ""
     # OTLP receiver container settings
     image:
-      repository: ghcr.io/swissdatasciencecenter/llm-serving/otlp-openmeter-bridge
+      repository: ghcr.io/swissdatasciencecenter/llm-serving/otlp-bridge
       tag: "" # defaults to .Chart.AppVersion
       pullPolicy: IfNotPresent
     replicas: 1
