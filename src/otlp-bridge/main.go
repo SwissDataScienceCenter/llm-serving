@@ -31,7 +31,6 @@ type Config struct {
 	RetryWaitSeconds int
 	MetricCode       string
 	CustomerID       string
-	OrganizationSlug string
 }
 
 // LagoEvent maps to the Lago Event schema for ingestion
@@ -63,7 +62,6 @@ func loadConfig() *Config {
 		RetryWaitSeconds: 2,
 		MetricCode:       os.Getenv("METRIC_CODE"),
 		CustomerID:       os.Getenv("CUSTOMER_ID"),
-		OrganizationSlug: os.Getenv("ORGANIZATION_SLUG"),
 	}
 }
 
@@ -282,8 +280,8 @@ func (s *server) sendEvent(ctx context.Context, event LagoEvent) error {
 
 func main() {
 	cfg := loadConfig()
-	if cfg.RemoteAPIURL == "" || cfg.GRPCListenAddr == "" || cfg.OrganizationSlug == "" {
-		log.Fatal("REMOTE_API_URL, GRPC_LISTEN_ADDR, and ORGANIZATION_SLUG must be set")
+	if cfg.RemoteAPIURL == "" || cfg.GRPCListenAddr == "" {
+		log.Fatal("REMOTE_API_URL and GRPC_LISTEN_ADDR must be set")
 	}
 
 	lis, err := net.Listen("tcp", cfg.GRPCListenAddr)
