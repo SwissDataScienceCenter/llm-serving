@@ -1,8 +1,10 @@
 # PostgreSQL
 
-The chart connects to an external PostgreSQL server, which
-must be reachable from the cluster and accept TLS: both OpenWebUI and Authentik connect with
-`sslmode=require`.
+The chart connects to an external PostgreSQL server, which must be reachable from the
+cluster. Both OpenWebUI and Authentik default to `sslmode=require`, so the server should
+accept TLS. Against one that does not, set `openwebui.postgres.sslMode` and
+`authentik.authentik.postgresql.sslmode` to `disable`, which leaves all database traffic
+in cleartext for as long as the deployment runs.
 
 ## Roles and databases
 
@@ -20,14 +22,17 @@ allowed to `CREATE ROLE` and `CREATE DATABASE`; on a managed or central server y
 to ask a DBA to run [bootstrap-db.sql](../tools/scripts/bootstrap-db.sql) instead. Either way
 it is safe to re-run: existing roles and databases are left untouched.
 
-> [!NOTE]
+> [!IMPORTANT]
 >
-> The sql script sends the application passwords in `CREATE ROLE` statements, so connect over TLS.
-> The recipe does this for you. When running manually, use :
+> The sql script sends the application passwords in `CREATE ROLE` statements, so connect
+> over TLS. The recipe defaults to `sslmode=require`. When running manually, use:
 >
 > ```bash
 > psql "postgresql://<admin>@<host>/postgres?sslmode=require" -f tools/scripts/bootstrap-db.sql
 > ```
+>
+> Without TLS, `PGSSLMODE=disable just db-bootstrap <host>` sends those passwords in
+> cleartext; run it from a pod inside the cluster.
 
 ## Values
 
