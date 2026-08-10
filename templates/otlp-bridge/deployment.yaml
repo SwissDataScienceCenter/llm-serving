@@ -41,8 +41,6 @@ spec:
               value: {{ .Values.envoy.telemetry.metricCode | default "genai.tokens" | quote }}
             - name: CUSTOMER_ID
               value: {{ .Values.envoy.telemetry.customerId | quote }}
-            - name: ORGANIZATION_SLUG
-              value: {{ .Values.envoy.telemetry.organizationSlug | quote }}
             - name: BEARER_TOKEN
               valueFrom:
                 secretKeyRef:

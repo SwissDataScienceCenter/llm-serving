@@ -21,8 +21,6 @@ envoy:
     metricCode: ""
     # Fixed Lago customer ID for all ingested events
     customerId: ""
-    # Lago organization slug for event routing
-    organizationSlug: ""
     # Bearer token for authenticating with Lago (always required when telemetry is enabled)
     bearerToken: ""
     # OTLP receiver container settings
