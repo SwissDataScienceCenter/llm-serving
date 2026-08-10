@@ -2,31 +2,30 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "telemetry.fullname" . }}
+  name: otlp-bridge
   namespace: {{ .Release.Namespace }}
   labels:
-    app: otlp-openmeter-bridge
+    app: otlp-bridge
     release: {{ .Release.Name }}
 spec:
-  replicas: {{ .Values.envoy.telemetry.replicas }}
+  replicas: {{ .Values.envoy.telemetry.replicas | default 1 }}
   selector:
     matchLabels:
-      app: otlp-openmeter-bridge
-      release: {{ .Release.Name }}
+      app: otlp-bridge
   template:
     metadata:
       labels:
-        app: otlp-openmeter-bridge
+        app: otlp-bridge
         release: {{ .Release.Name }}
     spec:
-  {{- if .Values.global.imagePullSecrets }}
+      {{- if .Values.global.imagePullSecrets }}
       imagePullSecrets:
         {{ toYaml .Values.global.imagePullSecrets | indent 8 }}
-  {{- end }}
+      {{- end }}
       containers:
         - name: bridge
-          image: {{ .Values.envoy.telemetry.image.repository }}:{{ .Values.envoy.telemetry.image.tag | default .Chart.AppVersion }}
-          imagePullPolicy: {{ .Values.envoy.telemetry.image.pullPolicy }}
+          image: {{ .Values.envoy.telemetry.image.repository | default "ghcr.io/swissdatasciencecenter/sdsc-llm-deployment/otlp-bridge" }}:{{ .Values.envoy.telemetry.image.tag | default "latest" }}
+          imagePullPolicy: {{ .Values.envoy.telemetry.image.pullPolicy | default "IfNotPresent" }}
           ports:
             - containerPort: 4317
               name: grpc
@@ -34,16 +33,18 @@ spec:
             - name: REMOTE_API_URL
               valueFrom:
                 configMapKeyRef:
-                  name: {{ include "telemetry.fullname" . }}
+                  name: otlp-bridge-config
                   key: remote-api-url
             - name: GRPC_LISTEN_ADDR
               value: ":4317"
-            - name: EVENT_TYPE
-              value: "llm_call"
+            - name: METRIC_CODE
+              value: {{ .Values.envoy.telemetry.metricCode | default "genai.tokens" | quote }}
+            - name: CUSTOMER_ID
+              value: {{ .Values.envoy.telemetry.customerId | quote }}
             - name: BEARER_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "telemetry.fullname" . }}
+                  name: otlp-bridge-secret
                   key: bearer-token
           resources:
             {{- toYaml .Values.envoy.telemetry.resources | nindent 12 }}

@@ -5,7 +5,7 @@ root_dir := `git rev-parse --show-toplevel`
 flake_dir := root_dir / "tools/nix"
 output_dir := root_dir / ".output"
 build_dir := output_dir / "build"
-go_modules := "src/init src/otlp-openmeter-bridge"
+go_modules := "src/init src/otlp-bridge"
 
 # Manage nix environment.
 [group('modules')]
