@@ -39,7 +39,7 @@ spec:
             - name: PG_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ $pg.passwordSecret.name | required ".Values.openwebui.postgres.passwordSecret.name is required" }}
+                  name: {{ (default dict $pg.passwordSecret).name | required ".Values.openwebui.postgres.passwordSecret.name is required" }}
                   key: password
   {{- $db := $pg.database }}
   {{- /* One value fills both db and role. */}}
