@@ -39,6 +39,38 @@ it is safe to re-run: existing roles and databases are left untouched.
 The postgres values must be specified for `authentik` and `openwebui`. They may use the same
 server, but should have different roles and databases.
 
+## Passwords
+
+The openwebui postgres password is read from Kubernetes `Secret` resources.
+Simply specify the resource name:
+
+```yaml
+openwebui:
+  postgres:
+    passwordSecret:
+      name: vllm-openwebui-pg
+```
+
+For the Authentik subchart to also use an external secret, the password must be injected via `global.env`, which covers server and worker at
+once:
+
+```yaml
+authentik:
+  authentik:
+    postgresql:
+      password: # unset on purpose, supplied below
+  global:
+    env:
+      - name: AUTHENTIK_POSTGRESQL__PASSWORD
+        valueFrom:
+          secretKeyRef: { name: vllm-authentik-pg, key: password }
+```
+
+> [!IMPORTANT]
+>
+> Use alphanumeric passwords. OpenWebUI's is interpolated into a connection URI in the pod,
+> where nothing percent-encodes it, so `@ : / ? # %` would corrupt the DSN.
+
 ## Sharing a server between releases
 
 The names default to `vllm-openwebui` and `vllm-authentik`, if multiple
