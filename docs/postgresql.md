@@ -41,8 +41,8 @@ server, but should have different roles and databases.
 
 ## Passwords
 
-The openwebui postgres password is read from Kubernetes `Secret` resources.
-Simply specify the resource name:
+The openwebui postgres password is read from a Kubernetes `Secret`, under the key `password`.
+The chart does not create it. Simply specify the resource name:
 
 ```yaml
 openwebui:
