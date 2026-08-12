@@ -2,3 +2,9 @@ VLLM Gateway and models have been successfully deployed on your cluster.
 
 You can access the gateway at https://gateway.{{ .Values.envoy.baseDomain }}/v1/chat/completions
 You can access Open-WebUI at https://openwebui.{{ .Values.envoy.baseDomain }}/
+{{- /* The subchart defaults it to "<release>-postgresql", a plausible name that resolves
+to nothing, so an omission would otherwise surface as an authentik CrashLoopBackOff.
+*/}}
+{{- if .Values.authentik.enabled }}
+  {{- $_ := .Values.authentik.authentik.postgresql.host | required ".Values.authentik.authentik.postgresql.host is required: the chart does not deploy PostgreSQL" }}
+{{- end }}

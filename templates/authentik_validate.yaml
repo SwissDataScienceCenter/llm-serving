@@ -1,5 +1,0 @@
-{{- /* Renders nothing. Guards a subchart value the parent has no template of its own for. */}}
-{{- if .Values.authentik.enabled }}
-  {{- /* The subchart defaults this to "<release>-postgresql", which will not resolve. */}}
-  {{- $_ := .Values.authentik.authentik.postgresql.host | required ".Values.authentik.authentik.postgresql.host is required: the chart does not deploy PostgreSQL" }}
-{{- end }}
