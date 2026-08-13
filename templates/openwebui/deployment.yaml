@@ -41,10 +41,12 @@ spec:
                 secretKeyRef:
                   name: {{ (default dict $pg.passwordSecret).name | required ".Values.openwebui.postgres.passwordSecret.name is required" }}
                   key: password
-  {{- $db := $pg.database }}
-  {{- /* One value fills both db and role. */}}
+  {{- /* One value fills both db and role. Guarded: an explicit null or "" deletes the
+  chart default, and an unset part of a DSN fails at connect time, not render time. */}}
+  {{- $db := $pg.database | required ".Values.openwebui.postgres.database is required" }}
+  {{- $ssl := $pg.sslMode | required ".Values.openwebui.postgres.sslMode is required" }}
             - name: DATABASE_URL
-              value: "postgresql://{{ $db }}:$(PG_PASSWORD)@{{ $pg.host | required ".Values.openwebui.postgres.host is required" }}:5432/{{ $db }}?sslmode={{ $pg.sslMode }}"
+              value: "postgresql://{{ $db }}:$(PG_PASSWORD)@{{ $pg.host | required ".Values.openwebui.postgres.host is required" }}:5432/{{ $db }}?sslmode={{ $ssl }}"
             - name: ENABLE_OAUTH_SIGNUP
               value: "true"
             - name: ENABLE_LOGIN_FORM
