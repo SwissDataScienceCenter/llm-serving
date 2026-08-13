@@ -14,7 +14,8 @@ openwebui:
     password: dummy
   postgres:
     host: pg.example.invalid
-    password: dummy
+    passwordSecret:
+      name: dummy-pg
 models:
   lint: &model
     fullName: org/lint-model

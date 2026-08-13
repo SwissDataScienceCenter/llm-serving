@@ -62,7 +62,9 @@ openwebui:
     database: vllm-openwebui
     # "disable" puts every query on the wire in cleartext.
     sslMode: require
-    password:
+    # Existing secret holding the role's password under the key "password".
+    passwordSecret:
+      name:
   admin:
     user: admin
     email: admin@sdsc.ethz.ch

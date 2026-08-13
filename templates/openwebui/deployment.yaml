@@ -34,11 +34,19 @@ spec:
               value: "true"
             - name: OPENAI_API_BASE_URL
               value: https://gateway.{{ .Values.envoy.baseDomain }}/v1
-            - name: DATABASE_URL
+  {{- $pg := .Values.openwebui.postgres }}
+  {{- /* Must precede DATABASE_URL: $(VAR) only expands earlier entries. */}}
+            - name: PG_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "openwebui.fullname" . }}-postgres
-                  key: OPENWEBUI_DATABASE_URL
+                  name: {{ (default dict $pg.passwordSecret).name | required ".Values.openwebui.postgres.passwordSecret.name is required" }}
+                  key: password
+  {{- /* One value fills both db and role. Guarded: an explicit null or "" deletes the
+  chart default, and an unset part of a DSN fails at connect time, not render time. */}}
+  {{- $db := $pg.database | required ".Values.openwebui.postgres.database is required" }}
+  {{- $ssl := $pg.sslMode | required ".Values.openwebui.postgres.sslMode is required" }}
+            - name: DATABASE_URL
+              value: "postgresql://{{ $db }}:$(PG_PASSWORD)@{{ $pg.host | required ".Values.openwebui.postgres.host is required" }}:5432/{{ $db }}?sslmode={{ $ssl }}"
             - name: ENABLE_OAUTH_SIGNUP
               value: "true"
             - name: ENABLE_LOGIN_FORM
