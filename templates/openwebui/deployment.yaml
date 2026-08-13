@@ -44,7 +44,7 @@ spec:
   {{- $db := $pg.database }}
   {{- /* One value fills both db and role. */}}
             - name: DATABASE_URL
-              value: "postgresql://{{ $db }}:$(PG_PASSWORD)@{{ $pg.host | required ".Values.openwebui.postgres.host is required" }}:5432/{{ $db }}?sslmode=require"
+              value: "postgresql://{{ $db }}:$(PG_PASSWORD)@{{ $pg.host | required ".Values.openwebui.postgres.host is required" }}:5432/{{ $db }}?sslmode={{ $pg.sslMode }}"
             - name: ENABLE_OAUTH_SIGNUP
               value: "true"
             - name: ENABLE_LOGIN_FORM
