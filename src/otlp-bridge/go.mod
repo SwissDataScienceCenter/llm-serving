@@ -3,6 +3,7 @@ module github.com/sdsc-vllm/otlp-bridge
 go 1.24.0
 
 require (
+	github.com/google/uuid v1.6.0
 	go.opentelemetry.io/proto/otlp v1.10.0
 	google.golang.org/grpc v1.79.2
 )
