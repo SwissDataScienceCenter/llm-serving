@@ -15,13 +15,13 @@ envoy:
   resources:
   telemetry:
     enabled: false
-    # Lago API endpoint for event ingestion (required when telemetry is enabled)
-    lagoUrl: ""
+    # Meteroid API endpoint for event ingestion (required when telemetry is enabled)
+    meteroidUrl: ""
     # Billable metric code for ingested events (default: genai.tokens)
     metricCode: ""
-    # Fixed Lago customer ID for all ingested events
+    # Fixed Meteroid customer ID for all ingested events
     customerId: ""
-    # Bearer token for authenticating with Lago (always required when telemetry is enabled)
+    # Bearer token for authenticating with Meteroid (always required when telemetry is enabled)
     bearerToken: ""
     # OTLP receiver container settings
     image:

@@ -12,10 +12,10 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
-	"strings"
 	"syscall"
 	"time"
 
+	"github.com/google/uuid"
 	"google.golang.org/grpc"
 
 	logspb "go.opentelemetry.io/proto/otlp/collector/logs/v1"
@@ -33,18 +33,20 @@ type Config struct {
 	CustomerID       string
 }
 
-// LagoEvent maps to the Lago Event schema for ingestion
-type LagoEvent struct {
-	TransactionID          string                 `json:"transaction_id"`
-	ExternalSubscriptionID string                 `json:"external_subscription_id"`
-	Code                   string                 `json:"code"`
-	Timestamp              int64                  `json:"timestamp"`
-	Properties             map[string]interface{} `json:"properties,omitempty"`
+// MeteroidEvent maps to the Meteroid Event schema for ingestion
+type MeteroidEvent struct {
+	EventID    string            `json:"event_id"`
+	Code       string            `json:"code"`
+	CustomerID string            `json:"customer_id"`
+	Timestamp  string            `json:"timestamp"`
+	Properties map[string]string `json:"properties,omitempty"`
 }
 
-// LagoIngestRequest maps to the Lago Event ingestion request
-type LagoIngestRequest struct {
-	Event LagoEvent `json:"event"`
+// IngestEventsRequest maps to the Meteroid IngestEventsRequest schema
+type IngestEventsRequest struct {
+	Events               []MeteroidEvent `json:"events"`
+	AllowBackfilling     *bool           `json:"allow_backfilling,omitempty"`
+	AllowPartialFailures *bool           `json:"allow_partial_failures,omitempty"`
 }
 
 type server struct {
@@ -118,7 +120,7 @@ func (s *server) processLogRecord(ctx context.Context, lr *logsrc.LogRecord) err
 	}
 
 	// Build properties from OTLP attributes
-	properties := make(map[string]interface{})
+	properties := make(map[string]string)
 	if method != "" {
 		properties["method"] = method
 	}
@@ -162,32 +164,14 @@ func (s *server) processLogRecord(ctx context.Context, lr *logsrc.LogRecord) err
 		properties["gen_ai.usage.total_tokens"] = genAIUsageTotal
 	}
 
-	// Generate structured transaction ID: {type}_{date}_{customer}_{category}_{request_id}
-	// Example: genai_20240314_cust42_gpt4_x-request-id-123
-	dateStr := time.Now().UTC().Format("20060102")
-	modelSlug := "unknown"
-	if genAIRequestModel != "" {
-		modelSlug = genAIRequestModel
-	} else if genAIResponseModel != "" {
-		modelSlug = genAIResponseModel
-	}
-	txnID := fmt.Sprintf("genai_%s_%s_%s_%s", dateStr, customerId, modelSlug, xRequestID)
-
-	// Use the log record's timestamp if available, otherwise use current time
-	var timestamp int64
-	if lr.GetTimeUnixNano() > 0 {
-		timestamp = int64(lr.GetTimeUnixNano() / 1000000000) // convert nanoseconds to seconds
-	} else {
-		timestamp = time.Now().UTC().Unix()
-	}
-
-	// Build the Lago event
-	event := LagoEvent{
-		TransactionID:          txnID,
-		ExternalSubscriptionID: customerId,
-		Code:                   metricCode,
-		Timestamp:              timestamp,
-		Properties:             properties,
+	// Build the Meteroid event
+	now := time.Now().UTC().Format(time.RFC3339)
+	event := MeteroidEvent{
+		EventID:    uuid.New().String(),
+		Code:       metricCode,
+		CustomerID: customerId,
+		Timestamp:  now,
+		Properties: properties,
 	}
 
 	return s.sendWithRetry(ctx, event)
@@ -218,7 +202,7 @@ func AnyValueToString(av *commonv1.AnyValue) string {
 	}
 }
 
-func (s *server) sendWithRetry(ctx context.Context, event LagoEvent) error {
+func (s *server) sendWithRetry(ctx context.Context, event MeteroidEvent) error {
 	var err error
 	for i := 0; i <= s.config.MaxRetries; i++ {
 		if i > 0 {
@@ -230,20 +214,13 @@ func (s *server) sendWithRetry(ctx context.Context, event LagoEvent) error {
 		if err == nil {
 			return nil
 		}
-
-		// Check if it's a 429 rate limit error - use backoff
-		if strings.Contains(err.Error(), "status 429") {
-			backoff := time.Duration(i+1) * time.Duration(s.config.RetryWaitSeconds) * time.Second
-			log.Printf("Rate limited, backing off for %v before retry", backoff)
-			time.Sleep(backoff)
-		}
 	}
 	return fmt.Errorf("failed to send event after %d retries: %w", s.config.MaxRetries, err)
 }
 
-func (s *server) sendEvent(ctx context.Context, event LagoEvent) error {
-	reqBody := LagoIngestRequest{
-		Event: event,
+func (s *server) sendEvent(ctx context.Context, event MeteroidEvent) error {
+	reqBody := IngestEventsRequest{
+		Events: []MeteroidEvent{event},
 	}
 
 	body, err := json.Marshal(reqBody)
@@ -251,7 +228,7 @@ func (s *server) sendEvent(ctx context.Context, event LagoEvent) error {
 		return fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	url := fmt.Sprintf("%s/api/v1/events", s.config.RemoteAPIURL)
+	url := fmt.Sprintf("%s/api/v1/events/ingest", s.config.RemoteAPIURL)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(body))
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
@@ -274,7 +251,7 @@ func (s *server) sendEvent(ctx context.Context, event LagoEvent) error {
 		return fmt.Errorf("remote API returned status %d: %s", resp.StatusCode, string(respBody))
 	}
 
-	log.Printf("Successfully ingested event: transaction_id=%s external_subscription_id=%s", event.TransactionID, event.ExternalSubscriptionID)
+	log.Printf("Successfully ingested event: event_id=%s customer_id=%s", event.EventID, event.CustomerID)
 	return nil
 }
 
