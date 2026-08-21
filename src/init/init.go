@@ -26,9 +26,8 @@ type OpenWebUi struct {
 	AdminEmail    string   `koanf:"admin_email"`
 	AdminPassword string   `koanf:"admin_password"`
 	ModelIds      []string `koanf:"model_ids"`
-	// Whether users may mint and use API keys. Tied to the gateway accepting the
-	// identity JWT OpenWebUI forwards: without that, a key reaches OpenWebUI's own
-	// API but every model call fails, so enabling it alone only widens the surface.
+	// Enable minting of API keys. Requires the gateway accepting the
+	// identity JWT OpenWebUI forwards.
 	EnableApiKeys bool `koanf:"enable_api_keys"`
 }
 
@@ -108,10 +107,9 @@ func initOpenWebui(conf Config) error {
 		}
 	}
 
-	// Runs on upgrades too: OpenWebUI stores this in its database, so env vars cannot
-	// reach an instance that already booted. Each step is a fetch-mutate-post round
-	// trip, idempotent on repeat but only because they are serialized -- running them
-	// concurrently would make them overwrite each other's keys.
+	// Runs on upgrades too: Stored in OpenWebUI db, env vars cannot
+	// reach existing instances. Each step is a fetch-mutate-post round
+	// trip, idempotent on repeat.
 	fmt.Println("configuring openwebui")
 	if err := setupOpenWebuiConfig(conf, adminToken); err != nil {
 		return err
@@ -202,8 +200,7 @@ func tokenFromResponse(res *http.Response) (string, error) {
 }
 
 // configRoundTrip fetches a JSON config document, applies mutate and posts the
-// result back. OpenWebUI's config endpoints replace the whole document instead of
-// merging, so keys the mutation does not touch have to be carried over from the GET.
+// result back. OpenWebUI's config endpoints replace the whole document.
 func configRoundTrip(getURL, postURL, adminToken string, mutate func(map[string]any) error) error {
 	// Without a timeout an unresponsive OpenWebUI wedges the init Job forever, and
 	// the Job has no activeDeadlineSeconds to cut it short.
