@@ -128,7 +128,8 @@ CLIENT_ID=<authentik.oauthApp.clientId>
 
 # 1. start the flow, then open verification_uri_complete in a browser and approve
 curl -s "https://authentik.$DOMAIN/application/o/device/" \
-  -d client_id="$CLIENT_ID" -d scope="openid profile email" | tee /tmp/dev.json | jq
+  -d client_id="$CLIENT_ID" -d scope="openid profile email offline_access" \
+  | tee /tmp/dev.json | jq
 
 # 2. exchange the device code for a token (returns authorization_pending until approved)
 TOKEN=$(curl -s "https://authentik.$DOMAIN/application/o/token/" \
