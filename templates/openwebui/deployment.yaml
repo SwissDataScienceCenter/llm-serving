@@ -76,6 +76,15 @@ spec:
               value: "false"
             - name: ENABLE_FORWARD_USER_INFO_HEADERS
               value: "true"
+  {{- with (include "openwebui.userJwtSecret" .) }}
+            {{- /* Replaces the X-OpenWebUI-User-* headers with gateway-signed JWT.
+            Minted from the user record, so API-key callers get one too. */}}
+            - name: FORWARD_USER_INFO_HEADER_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "openwebui.fullname" $ }}-oauth
+                  key: FORWARD_USER_INFO_HEADER_JWT_SECRET
+  {{- end }}
             - name: ENABLE_OAUTH_ID_TOKEN_COOKIE
               value: "false"
             - name: CORS_ALLOW_ORIGIN

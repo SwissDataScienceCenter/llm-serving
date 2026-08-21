@@ -1,6 +1,5 @@
 {{- if .Values.envoy.enabled }}
-# By default, Envoy Gateway sets the buffer limit to 32kiB which is not sufficient for AI workloads.
-# This ClientTrafficPolicy sets the buffer limit as configured.
+# One gateway-scoped policy: listener-scoped ClientTrafficPolicy override it.
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: ClientTrafficPolicy
 metadata:
@@ -11,6 +10,14 @@ spec:
     - group: gateway.networking.k8s.io
       kind: Gateway
       name: {{ include "envoy.fullname" . }}
+  # By default, Envoy Gateway sets the buffer limit to 32kiB which is not sufficient for AI workloads.
   connection:
     bufferLimit: {{ .Values.envoy.clientBufferLimit | default "50Mi" }}
+{{- /* A client-set x-sub would outrank the verified claim: jwt_authn appends, and
+  readers take the first value. Mirror claimToHeaders in security-policy.yaml. */}}
+  headers:
+    earlyRequestHeaders:
+      remove:
+        - x-sub
+        - x-name
 {{- end }}

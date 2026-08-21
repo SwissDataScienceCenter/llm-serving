@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/knadh/koanf/parsers/toml"
 	"github.com/knadh/koanf/providers/env/v2"
@@ -25,7 +26,13 @@ type OpenWebUi struct {
 	AdminEmail    string   `koanf:"admin_email"`
 	AdminPassword string   `koanf:"admin_password"`
 	ModelIds      []string `koanf:"model_ids"`
+	// Enable minting of API keys. Requires the gateway accepting the
+	// identity JWT OpenWebUI forwards.
+	EnableApiKeys bool `koanf:"enable_api_keys"`
 }
+
+// url builds an absolute OpenWebUI API URL. Plain http: the call is in-cluster.
+func (o OpenWebUi) url(path string) string { return "http://" + o.Host + path }
 
 type Config struct {
 	Host      string    `koanf:"host"`
@@ -89,27 +96,32 @@ func initOpenWebui(conf Config) error {
 	fmt.Println("creating admin user")
 	adminToken, err := createOpenWebuiAdmin(conf)
 	if err != nil {
-		if errors.Is(err, ErrUserExists) {
-			// On upgrade
-			fmt.Println("admin already exists, signing in to refresh model config")
-			adminToken, err = signinOpenWebuiAdmin(conf)
-			if err != nil {
-				return err
-			}
-			return setupOpenaiConfig(conf, adminToken)
+		if !errors.Is(err, ErrUserExists) {
+			return err
 		}
+		// On upgrade
+		fmt.Println("admin already exists, signing in to refresh config")
+		adminToken, err = signinOpenWebuiAdmin(conf)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Runs on upgrades too: Stored in OpenWebUI db, env vars cannot
+	// reach existing instances. Each step is a fetch-mutate-post round
+	// trip, idempotent on repeat.
+	fmt.Println("configuring openwebui")
+	if err := setupOpenWebuiConfig(conf, adminToken); err != nil {
 		return err
 	}
 
-	fmt.Println("configuring openwebui")
-	err = setupOpenWebuiConfig(conf, adminToken)
-	if err != nil {
+	fmt.Println("granting users the api_keys feature")
+	if err := setupUserPermissions(conf, adminToken); err != nil {
 		return err
 	}
 
 	fmt.Println("setting up oauth and models")
-	err = setupOpenaiConfig(conf, adminToken)
-	if err != nil {
+	if err := setupOpenaiConfig(conf, adminToken); err != nil {
 		return err
 	}
 
@@ -125,7 +137,7 @@ func createOpenWebuiAdmin(conf Config) (string, error) {
 		return "", fmt.Errorf("admin password not set")
 	}
 
-	signupURL := fmt.Sprintf("http://%s/api/v1/auths/signup", conf.OpenWebui.Host)
+	signupURL := conf.OpenWebui.url("/api/v1/auths/signup")
 	res, err := postAuth(signupURL, map[string]string{
 		"name":     conf.OpenWebui.AdminUser,
 		"email":    conf.OpenWebui.AdminEmail,
@@ -148,7 +160,7 @@ func createOpenWebuiAdmin(conf Config) (string, error) {
 }
 
 func signinOpenWebuiAdmin(conf Config) (string, error) {
-	signinURL := fmt.Sprintf("http://%s/api/v1/auths/signin", conf.OpenWebui.Host)
+	signinURL := conf.OpenWebui.url("/api/v1/auths/signin")
 	res, err := postAuth(signinURL, map[string]string{
 		"email":    conf.OpenWebui.AdminEmail,
 		"password": conf.OpenWebui.AdminPassword,
@@ -187,15 +199,20 @@ func tokenFromResponse(res *http.Response) (string, error) {
 	return userdata.Token, nil
 }
 
-func setupOpenWebuiConfig(conf Config, adminToken string) error {
-	configURL := fmt.Sprintf("http://%s/api/v1/auths/admin/config", conf.OpenWebui.Host)
-	getReq, err := http.NewRequest("GET", configURL, nil)
+// configRoundTrip fetches a JSON config document, applies mutate and posts the
+// result back. OpenWebUI's config endpoints replace the whole document.
+func configRoundTrip(getURL, postURL, adminToken string, mutate func(map[string]any) error) error {
+	// Without a timeout an unresponsive OpenWebUI wedges the init Job forever, and
+	// the Job has no activeDeadlineSeconds to cut it short.
+	client := http.Client{Timeout: 30 * time.Second}
+	auth := fmt.Sprintf("Bearer %s", adminToken)
+
+	getReq, err := http.NewRequest("GET", getURL, nil)
 	if err != nil {
 		return fmt.Errorf("GET request creation failed: %w", err)
 	}
-	getReq.Header.Set("Authorization", fmt.Sprintf("Bearer %s", adminToken))
+	getReq.Header.Set("Authorization", auth)
 
-	client := http.Client{}
 	getResp, err := client.Do(getReq)
 	if err != nil {
 		return fmt.Errorf("config fetch failed: %w", err)
@@ -212,19 +229,20 @@ func setupOpenWebuiConfig(conf Config, adminToken string) error {
 		return fmt.Errorf("config parse failed: %w", err)
 	}
 
-	config["DEFAULT_USER_ROLE"] = "user"
+	if err := mutate(config); err != nil {
+		return fmt.Errorf("config mutation failed: %w", err)
+	}
 
-	updateURL := fmt.Sprintf("http://%s/api/v1/auths/admin/config", conf.OpenWebui.Host)
 	payload, err := json.Marshal(config)
 	if err != nil {
 		return fmt.Errorf("config marshal failed: %w", err)
 	}
 
-	updateReq, err := http.NewRequest("POST", updateURL, bytes.NewBuffer(payload))
+	updateReq, err := http.NewRequest("POST", postURL, bytes.NewReader(payload))
 	if err != nil {
 		return fmt.Errorf("UPDATE request creation failed: %w", err)
 	}
-	updateReq.Header.Set("Authorization", fmt.Sprintf("Bearer %s", adminToken))
+	updateReq.Header.Set("Authorization", auth)
 	updateReq.Header.Set("Content-Type", "application/json")
 
 	updateResp, err := client.Do(updateReq)
@@ -241,66 +259,55 @@ func setupOpenWebuiConfig(conf Config, adminToken string) error {
 	return nil
 }
 
+func setupOpenWebuiConfig(conf Config, adminToken string) error {
+	configURL := conf.OpenWebui.url("/api/v1/auths/admin/config")
+	return configRoundTrip(configURL, configURL, adminToken, func(config map[string]any) error {
+		config["DEFAULT_USER_ROLE"] = "user"
+		// Gates both minting and presenting an sk- key, and defaults to off.
+		config["ENABLE_API_KEYS"] = conf.OpenWebui.EnableApiKeys
+		return nil
+	})
+}
+
+// setupUserPermissions grants non-admin users the api_keys feature. Admins bypass
+// the permission check, so without this only the admin account could use a key.
+func setupUserPermissions(conf Config, adminToken string) error {
+	permsURL := conf.OpenWebui.url("/api/v1/users/default/permissions")
+	return configRoundTrip(permsURL, permsURL, adminToken, func(perms map[string]any) error {
+		features, found := perms["features"]
+		if !found {
+			features = make(map[string]any)
+			perms["features"] = features
+		}
+		// Replacing a features map we failed to recognise would silently drop every
+		// other permission in it, so refuse rather than guess.
+		grants, ok := features.(map[string]any)
+		if !ok {
+			return fmt.Errorf("features permission is %T, want an object", features)
+		}
+		grants["api_keys"] = conf.OpenWebui.EnableApiKeys
+		return nil
+	})
+}
+
 func setupOpenaiConfig(conf Config, adminToken string) error {
-	configURL := fmt.Sprintf("http://%s/openai/config", conf.OpenWebui.Host)
-	getReq, err := http.NewRequest("GET", configURL, nil)
-	if err != nil {
-		return fmt.Errorf("GET request creation failed: %w", err)
-	}
-	getReq.Header.Set("Authorization", fmt.Sprintf("Bearer %s", adminToken))
-
-	client := http.Client{}
-	getResp, err := client.Do(getReq)
-	if err != nil {
-		return fmt.Errorf("config fetch failed: %w", err)
-	}
-	defer getResp.Body.Close()
-
-	if getResp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(getResp.Body)
-		return fmt.Errorf("config fetch failed (status %d): %s", getResp.StatusCode, string(body))
-	}
-
-	var config map[string]any
-	if err := json.NewDecoder(getResp.Body).Decode(&config); err != nil {
-		return fmt.Errorf("config parse failed: %w", err)
-	}
-
-	// Configure OpenWebUI to use OAuth authentication for the gateway
-	fmt.Println("setting provider auth type")
-	config["OPENAI_API_CONFIGS"] = make(map[int]any)
-	api_conf := config["OPENAI_API_CONFIGS"].(map[int]any)
-	c := make(map[string]any)
-
-	c["auth_type"] = "system_oauth"
-	c["model_ids"] = conf.OpenWebui.ModelIds
-	c["enabled"] = true
-	c["connection_type"] = "external"
-	api_conf[0] = c
-
-	updateURL := fmt.Sprintf("http://%s/openai/config/update", conf.OpenWebui.Host)
-	payload, err := json.Marshal(config)
-	if err != nil {
-		return fmt.Errorf("config marshal failed: %w", err)
-	}
-
-	updateReq, err := http.NewRequest("POST", updateURL, bytes.NewBuffer(payload))
-	if err != nil {
-		return fmt.Errorf("UPDATE request creation failed: %w", err)
-	}
-	updateReq.Header.Set("Authorization", fmt.Sprintf("Bearer %s", adminToken))
-	updateReq.Header.Set("Content-Type", "application/json")
-
-	updateResp, err := client.Do(updateReq)
-	if err != nil {
-		return fmt.Errorf("config update failed: %w", err)
-	}
-	defer updateResp.Body.Close()
-
-	if updateResp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(updateResp.Body)
-		return fmt.Errorf("config update failed (status %d): %s", updateResp.StatusCode, string(body))
-	}
-
-	return nil
+	return configRoundTrip(
+		conf.OpenWebui.url("/openai/config"),
+		conf.OpenWebui.url("/openai/config/update"),
+		adminToken,
+		func(config map[string]any) error {
+			// No Authorization header upstream: the gateway identifies the caller from
+			// the signed per-user JWT OpenWebUI forwards alongside the request.
+			// Keys must be the connection's index as a string; others are dropped.
+			config["OPENAI_API_CONFIGS"] = map[string]any{
+				"0": map[string]any{
+					"auth_type":       "none",
+					"model_ids":       conf.OpenWebui.ModelIds,
+					"enabled":         true,
+					"connection_type": "external",
+				},
+			}
+			return nil
+		},
+	)
 }

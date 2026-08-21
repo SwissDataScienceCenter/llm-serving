@@ -9,12 +9,12 @@ Helm chart to deploy VLLM and envoy on Kubernetes
 The chart only creates custom resources that rely on these systems being installed on the cluster:
 
 - [Gateway API](https://gateway-api.sigs.k8s.io/) CRDs (`gateway.networking.k8s.io`)
-- [Envoy Gateway](https://gateway.envoyproxy.io/) with the [Envoy AI Gateway](https://aigateway.envoyproxy.io/) extension (controller in `envoy-gateway-system`)
+- [Envoy Gateway](https://gateway.envoyproxy.io/) (>=v1.4.0) with the [Envoy AI Gateway](https://aigateway.envoyproxy.io/) extension.
 - [Knative Serving](https://knative.dev/docs/serving/) (scale-to-zero model services)
 - [cert-manager](https://cert-manager.io/) with a `ClusterIssuer` matching `envoy.clusterissuer`
 - A PostgreSQL server, with roles and databases created up front. See [postgresql.md](docs/postgresql.md)
 
-## Usage
+## Installation
 
 The repository contains a [`justfile`](justfile) to automate routine commands.
 You may use it as reference, or run it with `just` (by default, just will list available recipes).
@@ -74,6 +74,10 @@ models:
     enableTools: false # whether to allow tool calls or not
     logRequests: false # whether to log all requests in the vllm pod
     scaleDownDelaySeconds: 3600 # the number of seconds before the model is torn down if there is no traffic
+    rateLimit: # optional: token-based quota, counted per caller identity
+      enabled: false
+      requests: 500000 # tokens per caller per unit
+      unit: Hour
     chatTemplate: # if you want to use a custom chat template. Usually left empty. The template must exist in the docker image to work
       repository:
       tag:
@@ -97,3 +101,31 @@ just to make sure the user is created in openwebui.
 click on the user icon in the bottom left, go to "Admin Panel" -> "Settings" -> "Models". For each model, click on the
 Pen icon to edit, then the "Access" button in the top right. Set to "Public", close and "save". This has to be done each
 time models are changed.
+
+A model that has scaled to zero takes a minute or two to answer the first message.
+
+## Usage
+
+### Web interface
+
+Open `https://openwebui.<baseDomain>` and sign in with the "authentik" button, which
+delegates to GitLab. The first sign-in creates the account.
+
+Members of the `gateway admins` group in authentik become OpenWebUI admins.
+
+### API access
+
+Set `openwebui.forwardUserJwtSecret` to any high-entropy string. OpenWebUI then signs a
+short-lived per-user JWT into an `X-OpenWebUI-User-Jwt` header on every request it makes to
+the gateway, and the gateway is configured to accept it as a second JWT provider. Users can
+then treat OpenWebUI as an OpenAI-compatible endpoint:
+
+```bash
+# Settings -> Account -> API Keys in the OpenWebUI UI
+export OPENAI_API_KEY=sk-...
+export OPENAI_BASE_URL=https://openwebui.<baseDomain>/api
+
+curl "$OPENAI_BASE_URL/chat/completions" \
+  -H "Authorization: Bearer $OPENAI_API_KEY" -H 'Content-Type: application/json' \
+  -d '{"model":"<models.*.fullName>","messages":[{"role":"user","content":"hello"}]}'
+```
