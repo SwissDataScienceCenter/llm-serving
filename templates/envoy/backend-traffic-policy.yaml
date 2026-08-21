@@ -1,10 +1,12 @@
-{{- $found := false }}
+{{- $perUser := false }}
 {{- range $key, $val := .Values.models }}
   {{- if and $val.rateLimit $val.rateLimit.enabled }}
-    {{- $found = true }}
+    {{- $perUser = true }}
   {{- end }}
 {{- end }}
-{{- if and .Values.envoy.enabled $found}}
+{{- $rl := default dict .Values.envoy.rateLimit }}
+{{- $ceiling := $rl.ceilingRequests }}
+{{- if and .Values.envoy.enabled (or $perUser $ceiling) }}
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: BackendTrafficPolicy
 metadata:
@@ -40,6 +42,23 @@ spec:
                 namespace: io.envoy.ai_gateway
                 key: llm_total_token # uses tokens from responses as unit
     {{- end }}
+  {{- end }}
+  {{- with $ceiling }}
+    {{- /* Gateway-wide backstop for requests carrying no x-sub: a selector
+    on an absent header emits no descriptor at all -> it would go unmetered
+    with per-model rules. */}}
+        - limit:
+            requests: {{ . }}
+            unit: Hour
+          cost:
+            request:
+              from: Number
+              number: 0 # Set to 0 so only token usage counts
+            response:
+              from: Metadata
+              metadata:
+                namespace: io.envoy.ai_gateway
+                key: llm_total_token # uses tokens from responses as unit
   {{- end }}
 
 {{- end }}
