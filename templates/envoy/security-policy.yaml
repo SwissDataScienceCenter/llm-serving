@@ -1,23 +1,49 @@
-{{- if and .Values.envoy.enabled (include "envoy.jwksUri" .) }}
+{{- $jwksUri := include "envoy.jwksUri" . }}
+{{- $userJwtSecret := include "openwebui.userJwtSecret" . }}
+{{- if and .Values.envoy.enabled (or $jwksUri $userJwtSecret) }}
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: SecurityPolicy
 metadata:
-  name: {{ include "envoy.fullname" . }}-authentik-jwks
+  name: {{ include "envoy.fullname" . }}-models-jwt
   namespace: {{ .Release.Namespace }}
 spec:
   targetRef:
     group: gateway.networking.k8s.io
     kind: HTTPRoute
     name: {{ include "envoy.fullname" . }}-models
+  {{- /* A request has to satisfy only ONE provider: Verification short-circuits on the first
+  successful provider. A caller presenting both credentials keeps its authentik identity. */}}
   jwt:
     providers:
+  {{- if $jwksUri }}
     - name: authentik
       remoteJWKS:
-        uri: {{ include "envoy.jwksUri" . }}
+        uri: {{ $jwksUri }}
       recomputeRoute: true
       claimToHeaders:
         - claim: sub
           header: x-sub
         - claim: name
           header: x-name
+  {{- end }}
+  {{- with $userJwtSecret }}
+    {{- /* Allows reaching the models without an authentik token -> for OpenWebUI API keys. */}}
+    - name: openwebui
+      {{- /* Pin issuer to only accept tokens minted for this purpose. */}}
+      issuer: open-webui
+      localJWKS:
+        type: Inline
+        {{- /* k must be unpadded base64url.*/}}
+        inline: '{"keys":[{"kty":"oct","alg":"HS256","k":"{{ . | b64enc | replace "+" "-" | replace "/" "_" | replace "=" "" }}"}]}'
+      extractFrom:
+        headers:
+          {{- /* No valuePrefix: the header value is the bare token, not "Bearer x". */}}
+          - name: X-OpenWebUI-User-Jwt
+      recomputeRoute: true
+      claimToHeaders:
+        - claim: sub
+          header: x-sub
+        - claim: name
+          header: x-name
+  {{- end }}
 {{- end }}
