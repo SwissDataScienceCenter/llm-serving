@@ -5,6 +5,8 @@ envoy:
   clientBufferLimit: 50Mi
   security:
     jwksUri:
+    # `iss` to require. Derived from authentik by default; required when jwksUri is set.
+    issuer:
   gatewayClass:
     enabled: false
     name:
@@ -137,5 +139,3 @@ authentik:
     clientSecret:
     accessTokenValidity: "days=30"
     refreshTokenValidity: "days=365"
-  serviceAccount:
-    create: false
