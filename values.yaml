@@ -6,8 +6,9 @@ envoy:
   security:
     jwksUri:
   rateLimit:
-    # Shared across all callers. should be well above any per-model limit. Used for
-    # requests that arrive without a caller identity (no x-sub). Unset means no ceiling.
+    # Req/hour ceiling shared across all callers. Should be well above any per-model limit.
+    # Used for requests that arrive without a caller identity (no x-sub).
+    # Unset means no ceiling.
     ceilingRequests:
   gatewayClass:
     enabled: false
