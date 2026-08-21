@@ -5,6 +5,10 @@ envoy:
   clientBufferLimit: 50Mi
   security:
     jwksUri:
+  rateLimit:
+    # Shared across all callers. should be well above any per-model limit. Used for
+    # requests that arrive without a caller identity (no x-sub). Unset means no ceiling.
+    ceilingRequests:
   gatewayClass:
     enabled: false
     name:
@@ -69,6 +73,8 @@ openwebui:
     user: admin
     email: admin@sdsc.ethz.ch
     password:
+  # HS256 key OpenWebUI signs its per-user identity JWT with. Needed for OpenWebUI API keys.
+  forwardUserJwtSecret:
   resources:
     requests:
       cpu: 500m
