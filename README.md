@@ -14,7 +14,7 @@ The chart only creates custom resources that rely on these systems being install
 - [cert-manager](https://cert-manager.io/) with a `ClusterIssuer` matching `envoy.clusterissuer`
 - A PostgreSQL server, with roles and databases created up front. See [postgresql.md](docs/postgresql.md)
 
-## Usage
+## Installation
 
 The repository contains a [`justfile`](justfile) to automate routine commands.
 You may use it as reference, or run it with `just` (by default, just will list available recipes).
@@ -129,4 +129,3 @@ curl "$OPENAI_BASE_URL/chat/completions" \
   -H "Authorization: Bearer $OPENAI_API_KEY" -H 'Content-Type: application/json' \
   -d '{"model":"<models.*.fullName>","messages":[{"role":"user","content":"hello"}]}'
 ```
-
