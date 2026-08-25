@@ -137,5 +137,13 @@ authentik:
     name: vllm
     clientId:
     clientSecret:
-    accessTokenValidity: "days=30"
+    # Lifetime of the device code and the authorization code.
+    accessCodeValidity: "minutes=10"
+    accessTokenValidity: "hours=8"
     refreshTokenValidity: "days=365"
+  serviceAccount:
+    # Gates the authentik-remote-cluster subchart (aliased `serviceAccount` in the
+    # authentik chart's dependencies), which would bind the worker to a Role granting
+    # get/create/delete/list/patch on namespace secrets, deployments and httproutes.
+    # Only needed for managed outposts, which this deployment does not use.
+    create: false
