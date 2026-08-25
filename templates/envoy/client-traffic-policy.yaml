@@ -13,4 +13,11 @@ spec:
       name: {{ include "envoy.fullname" . }}
   connection:
     bufferLimit: {{ .Values.envoy.clientBufferLimit | default "50Mi" }}
+  {{- /* A client-set x-sub would outrank the verified claim: jwt_authn appends, and
+  readers take the first value. Mirror claimToHeaders in security-policy.yaml. */}}
+  headers:
+    earlyRequestHeaders:
+      remove:
+        - x-sub
+        - x-name
 {{- end }}

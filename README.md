@@ -14,7 +14,7 @@ The chart only creates custom resources that rely on these systems being install
 - [cert-manager](https://cert-manager.io/) with a `ClusterIssuer` matching `envoy.clusterissuer`
 - A PostgreSQL server, with roles and databases created up front. See [postgresql.md](docs/postgresql.md)
 
-## Usage
+## Installation
 
 The repository contains a [`justfile`](justfile) to automate routine commands.
 You may use it as reference, or run it with `just` (by default, just will list available recipes).
@@ -97,3 +97,56 @@ just to make sure the user is created in openwebui.
 click on the user icon in the bottom left, go to "Admin Panel" -> "Settings" -> "Models". For each model, click on the
 Pen icon to edit, then the "Access" button in the top right. Set to "Public", close and "save". This has to be done each
 time models are changed.
+
+## Usage
+
+### Web interface
+
+Open `https://openwebui.<baseDomain>` and sign in with the "authentik" button, which
+delegates to GitLab. The first sign-in creates the account; accounts are matched by
+email, so signing in a different way later does not create a duplicate.
+
+Members of the `gateway admins` group in authentik become OpenWebUI admins.
+
+Newly added models stay private until an admin makes them public once, see
+[Manual installation steps](#manual-installation-steps).
+
+A model that has scaled to zero takes a minute or two to answer the first message.
+
+### API access
+
+The gateway at `https://gateway.<baseDomain>/v1` speaks the OpenAI API and takes an
+authentik access token as its bearer credential. `GET /v1/models` lists the model names to
+use; they are the `models.*.fullName` values.
+
+Get a token with the device code flow. `CLIENT_ID` is `authentik.oauthApp.clientId` -- a
+public client, so it is not a secret:
+
+```bash
+DOMAIN=<baseDomain>
+CLIENT_ID=<authentik.oauthApp.clientId>
+
+# 1. start the flow, then open verification_uri_complete in a browser and approve
+curl -s "https://authentik.$DOMAIN/application/o/device/" \
+  -d client_id="$CLIENT_ID" -d scope="openid profile email offline_access" \
+  | tee /tmp/dev.json | jq
+
+# 2. exchange the device code for a token (returns authorization_pending until approved)
+TOKEN=$(curl -s "https://authentik.$DOMAIN/application/o/token/" \
+  -d grant_type=urn:ietf:params:oauth:grant-type:device_code \
+  -d client_id="$CLIENT_ID" \
+  -d device_code="$(jq -r .device_code /tmp/dev.json)" | jq -r .access_token)
+
+curl "https://gateway.$DOMAIN/v1/chat/completions" \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"model":"<fullName>","messages":[{"role":"user","content":"hello"}]}'
+```
+
+Or point any OpenAI client at it:
+`OpenAI(base_url=f"https://gateway.{DOMAIN}/v1", api_key=TOKEN)`.
+
+The token is yours, so rate limits and usage are attributed to you. Access tokens last
+`authentik.oauthApp.accessTokenValidity` (30 days by default); the device grant also
+returns a refresh token, valid for `refreshTokenValidity`, so a client can renew without
+a second browser approval. A model that has scaled to zero takes a minute or two to answer
+the first request.
