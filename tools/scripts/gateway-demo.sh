@@ -35,9 +35,10 @@ if [[ -z "$model" ]]; then
 fi
 
 printf '\n== completion (%s) ==\n' "$model" >&2
+CONTENT=${MESSAGE:-"Reply with exactly: hello"}
 # A model that has scaled to zero takes minutes to answer the first request.
 curl -sS --max-time 600 "$gateway/chat/completions" "${auth[@]}" \
     -H 'Content-Type: application/json' \
-    -d "$(jq -nc --arg m "$model" \
-        '{model: $m, messages: [{role: "user", content: "Reply with exactly: hello"}]}')" |
+    -d "$(jq -nc --arg m "$model" --arg c "$CONTENT" \
+        '{model: $m, messages: [{role: "user", content: $c}]}')" |
     jq -r '.choices[0].message.content // .'
