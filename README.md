@@ -136,4 +136,5 @@ curl "https://gateway.$BASE_DOMAIN/v1/chat/completions" \
 
 Or point any OpenAI client at it:
 `OpenAI(base_url=f"https://gateway.{BASE_DOMAIN}/v1", api_key=TOKEN)`.
+
 [gateway-demo.sh](tools/scripts/gateway-demo.sh) does both steps as a smoke test.
