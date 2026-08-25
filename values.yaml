@@ -137,5 +137,7 @@ authentik:
     name: vllm
     clientId:
     clientSecret:
+    # Lifetime of the device code and the authorization code.
+    accessCodeValidity: "minutes=10"
     accessTokenValidity: "days=30"
     refreshTokenValidity: "days=365"
