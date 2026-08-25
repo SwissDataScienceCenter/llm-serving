@@ -146,7 +146,7 @@ Or point any OpenAI client at it:
 `OpenAI(base_url=f"https://gateway.{DOMAIN}/v1", api_key=TOKEN)`.
 
 The token is yours, so rate limits and usage are attributed to you. Access tokens last
-`authentik.oauthApp.accessTokenValidity` (30 days by default); the device grant also
+`authentik.oauthApp.accessTokenValidity` (8 hours by default); the device grant also
 returns a refresh token, valid for `refreshTokenValidity`, so a client can renew without
 a second browser approval. A model that has scaled to zero takes a minute or two to answer
 the first request.
