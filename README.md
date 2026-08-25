@@ -117,36 +117,24 @@ A model that has scaled to zero takes a minute or two to answer the first messag
 
 The gateway at `https://gateway.<baseDomain>/v1` speaks the OpenAI API and takes an
 authentik access token as its bearer credential. `GET /v1/models` lists the model names to
-use; they are the `models.*.fullName` values.
+use.
 
-Get a token with the device code flow. `CLIENT_ID` is `authentik.oauthApp.clientId` -- a
-public client, so it is not a secret:
+Get a token with the device code flow, using [gateway-token.sh](tools/scripts/gateway-token.sh).
+It prints the approval URL, polls until you approve it in a browser, and writes the token to stdout.
+`CLIENT_ID` is `authentik.oauthApp.clientId` (not a secret).
 
 ```bash
-DOMAIN=<baseDomain>
-CLIENT_ID=<authentik.oauthApp.clientId>
+export BASE_DOMAIN=<envoy.baseDomain>
+export CLIENT_ID=<authentik.oauthApp.clientId>
 
-# 1. start the flow, then open verification_uri_complete in a browser and approve
-curl -s "https://authentik.$DOMAIN/application/o/device/" \
-  -d client_id="$CLIENT_ID" -d scope="openid profile email offline_access" \
-  | tee /tmp/dev.json | jq
+TOKEN=$(tools/scripts/gateway-token.sh)
 
-# 2. exchange the device code for a token (returns authorization_pending until approved)
-TOKEN=$(curl -s "https://authentik.$DOMAIN/application/o/token/" \
-  -d grant_type=urn:ietf:params:oauth:grant-type:device_code \
-  -d client_id="$CLIENT_ID" \
-  -d device_code="$(jq -r .device_code /tmp/dev.json)" | jq -r .access_token)
-
-curl "https://gateway.$DOMAIN/v1/chat/completions" \
+curl "https://gateway.$BASE_DOMAIN/v1/chat/completions" \
   -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
   -d '{"model":"<fullName>","messages":[{"role":"user","content":"hello"}]}'
 ```
 
 Or point any OpenAI client at it:
-`OpenAI(base_url=f"https://gateway.{DOMAIN}/v1", api_key=TOKEN)`.
+`OpenAI(base_url=f"https://gateway.{BASE_DOMAIN}/v1", api_key=TOKEN)`.
 
-The token is yours, so rate limits and usage are attributed to you. Access tokens last
-`authentik.oauthApp.accessTokenValidity` (8 hours by default); the device grant also
-returns a refresh token, valid for `refreshTokenValidity`, so a client can renew without
-a second browser approval. A model that has scaled to zero takes a minute or two to answer
-the first request.
+[gateway-demo.sh](tools/scripts/gateway-demo.sh) does both steps as a smoke test.
