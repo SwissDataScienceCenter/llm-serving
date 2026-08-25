@@ -135,7 +135,7 @@ curl -s "https://authentik.$DOMAIN/application/o/device/" \
 TOKEN=$(curl -s "https://authentik.$DOMAIN/application/o/token/" \
   -d grant_type=urn:ietf:params:oauth:grant-type:device_code \
   -d client_id="$CLIENT_ID" \
-  -d device_code="$(jq -r .device_code /tmp/dev.json)" | jq -r .access_token)
+  --data-urlencode "device_code=$(jq -r .device_code /tmp/dev.json)" | jq -r .access_token)
 
 curl "https://gateway.$DOMAIN/v1/chat/completions" \
   -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
