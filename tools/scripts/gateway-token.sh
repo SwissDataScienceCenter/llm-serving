@@ -15,14 +15,12 @@ fi
 
 authentik="https://authentik.$BASE_DOMAIN"
 
-# offline_access is what makes authentik return a refresh token; it has to be bound
-# to the provider as a scope mapping too, or it is silently dropped.
+# offline_access required for authentik to return a refresh token
 init=$(curl -sS --max-time 30 "$authentik/application/o/device/" \
     -d client_id="$CLIENT_ID" \
     --data-urlencode "scope=openid profile email offline_access")
 
-# Tolerate a non-JSON body: a wrong domain or an ingress error page is the likeliest
-# first-run failure, and jq's parse error alone tells the user nothing.
+# Check for non-JSON body or empty code.
 device_code=$(jq -r '.device_code // empty' 2>/dev/null <<<"$init" || true)
 if [[ -z "$device_code" ]]; then
     printf '%s/application/o/device/ returned no device code:\n%s\n' "$authentik" "$init" >&2
@@ -38,9 +36,6 @@ printf 'Approve this device, then leave this running:\n\n  %s\n\n' \
 deadline=$((SECONDS + expires_in))
 while ((SECONDS < deadline)); do
     sleep "$interval"
-    # --data-urlencode on device_code is required, not cosmetic: authentik generates
-    # it from the full printable ASCII range, so raw form data corrupts it and the
-    # lookup fails as an indistinguishable invalid_grant.
     response=$(curl -sS --max-time 30 "$authentik/application/o/token/" \
         -d grant_type=urn:ietf:params:oauth:grant-type:device_code \
         -d client_id="$CLIENT_ID" \
