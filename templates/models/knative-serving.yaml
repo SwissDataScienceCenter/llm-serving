@@ -80,9 +80,7 @@ spec:
             subPath: {{ $.Values.environment | default "." }}/model_cache
     {{- end }}
     {{- if $model.volumeMounts }}
-    {{- range $model.volumeMounts }}
-          {{- toYaml . | nindent 10 }}
-    {{- end }}
+          {{- toYaml $model.volumeMounts | nindent 10 }}
     {{- end }}
           ports:
             - containerPort: 3000
@@ -112,9 +110,7 @@ spec:
             claimName: {{ if $persistence.enabled }}{{ $fullname }}-cache{{ else }}{{ $cacheDir.claimName }}{{ end }}
     {{- end }}
     {{- if $model.volumes }}
-    {{- range $model.volumes }}
-        {{- toYaml . | nindent 8 }}
-    {{- end }}
+        {{- toYaml $model.volumes | nindent 8 }}
     {{- end }}
     {{- end }}
   traffic:
@@ -243,9 +239,7 @@ spec:
             subPath: {{ $.Values.environment | default "." }}/model_cache
     {{- end }}
     {{- if $model.volumeMounts }}
-    {{- range $model.volumeMounts }}
-          {{- toYaml . | nindent 10 }}
-    {{- end }}
+          {{- toYaml $model.volumeMounts | nindent 10 }}
     {{- end }}
     {{- if $model.tolerations }}
       tolerations:
@@ -269,9 +263,7 @@ spec:
             claimName: {{ if $persistence.enabled }}{{ $fullname }}-cache{{ else }}{{ $cacheDir.claimName }}{{ end }}
     {{- end }}
     {{- if $model.volumes }}
-    {{- range $model.volumes }}
-        {{- toYaml . | nindent 8 }}
-    {{- end }}
+        {{- toYaml $model.volumes | nindent 8 }}
     {{- end }}
     {{- end }}
       timeoutSeconds: 600
