@@ -79,6 +79,11 @@ spec:
             name: pvc-cache
             subPath: {{ $.Values.environment | default "." }}/model_cache
     {{- end }}
+    {{- if $model.volumeMounts }}
+    {{- range $model.volumeMounts }}
+          {{- toYaml . | nindent 10 }}
+    {{- end }}
+    {{- end }}
           ports:
             - containerPort: 3000
               protocol: TCP
@@ -96,17 +101,21 @@ spec:
       affinity:
         {{- toYaml $.Values.global.affinity | nindent 8 }}
     {{- end }}
-    {{- if $model.shareProcessNamespace }}
-      shareProcessNamespace: true
-    {{- end }}
       timeoutSeconds: 600
       responseStartTimeoutSeconds: 600
       idleTimeoutSeconds: 600
-    {{- if or $persistence.enabled (and $cacheDir $cacheDir.claimName) }}
+    {{- if or $persistence.enabled (and $cacheDir $cacheDir.claimName) $model.volumes }}
       volumes:
+    {{- if or $persistence.enabled (and $cacheDir $cacheDir.claimName) }}
         - name: pvc-cache
           persistentVolumeClaim:
             claimName: {{ if $persistence.enabled }}{{ $fullname }}-cache{{ else }}{{ $cacheDir.claimName }}{{ end }}
+    {{- end }}
+    {{- if $model.volumes }}
+    {{- range $model.volumes }}
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- end }}
     {{- end }}
   traffic:
     - latestRevision: true
@@ -233,6 +242,11 @@ spec:
             name: pvc-cache
             subPath: {{ $.Values.environment | default "." }}/model_cache
     {{- end }}
+    {{- if $model.volumeMounts }}
+    {{- range $model.volumeMounts }}
+          {{- toYaml . | nindent 10 }}
+    {{- end }}
+    {{- end }}
     {{- if $model.tolerations }}
       tolerations:
         {{- toYaml $model.tolerations | nindent 8 }}
@@ -247,14 +261,18 @@ spec:
       affinity:
         {{- toYaml $.Values.global.affinity | nindent 8 }}
     {{- end }}
-    {{- if $model.shareProcessNamespace }}
-      shareProcessNamespace: true
-    {{- end }}
-    {{- if or $persistence.enabled (and $cacheDir $cacheDir.claimName) }}
+    {{- if or $persistence.enabled (and $cacheDir $cacheDir.claimName) $model.volumes }}
       volumes:
+    {{- if or $persistence.enabled (and $cacheDir $cacheDir.claimName) }}
         - name: pvc-cache
           persistentVolumeClaim:
             claimName: {{ if $persistence.enabled }}{{ $fullname }}-cache{{ else }}{{ $cacheDir.claimName }}{{ end }}
+    {{- end }}
+    {{- if $model.volumes }}
+    {{- range $model.volumes }}
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- end }}
     {{- end }}
       timeoutSeconds: 600
       responseStartTimeoutSeconds: 600
