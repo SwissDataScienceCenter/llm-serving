@@ -96,6 +96,9 @@ spec:
       affinity:
         {{- toYaml $.Values.global.affinity | nindent 8 }}
     {{- end }}
+    {{- if $model.shareProcessNamespace }}
+      shareProcessNamespace: true
+    {{- end }}
       timeoutSeconds: 600
       responseStartTimeoutSeconds: 600
       idleTimeoutSeconds: 600
@@ -243,6 +246,9 @@ spec:
     {{- else if $.Values.global.affinity }}
       affinity:
         {{- toYaml $.Values.global.affinity | nindent 8 }}
+    {{- end }}
+    {{- if $model.shareProcessNamespace }}
+      shareProcessNamespace: true
     {{- end }}
     {{- if or $persistence.enabled (and $cacheDir $cacheDir.claimName) }}
       volumes:
