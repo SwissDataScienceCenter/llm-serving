@@ -7,5 +7,5 @@ metadata:
   labels:
     release: {{ .Release.Name }}
 data:
-  remote-api-url: {{ .Values.envoy.telemetry.lagoUrl | quote }}
+  remote-api-url: {{ .Values.envoy.telemetry.meteroidUrl | quote }}
 {{- end }}
