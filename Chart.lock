@@ -1,6 +1,6 @@
 dependencies:
 - name: authentik
   repository: https://goauthentik.github.io/helm
-  version: 2026.5.2
-digest: sha256:7cf416b44f9132417c0006541e59049f9a44a28e36f003842cd334781523d8a5
-generated: "2026-08-04T00:00:00.000000000+02:00"
+  version: 2026.8.4
+digest: sha256:d390cda92dc43f2aff9ebfb2b2ab28813159ac6608b743ef73bf4e3741936f5e
+generated: "2026-10-21T10:02:36.964761718+02:00"

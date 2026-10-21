@@ -1,18 +1,18 @@
 module github.com/sdsc-vllm/otlp-bridge
 
-go 1.24.0
+go 1.26.0
 
 require (
-	go.opentelemetry.io/proto/otlp v1.10.0
-	google.golang.org/grpc v1.79.2
+	go.opentelemetry.io/proto/otlp v1.11.1
+	google.golang.org/grpc v1.84.0
 )
 
 require (
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.28.0 // indirect
-	golang.org/x/net v0.50.0 // indirect
-	golang.org/x/sys v0.41.0 // indirect
-	golang.org/x/text v0.34.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20260209200024-4cfbd4190f57 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260209200024-4cfbd4190f57 // indirect
-	google.golang.org/protobuf v1.36.11 // indirect
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.32.0 // indirect
+	golang.org/x/net v0.61.0 // indirect
+	golang.org/x/sys v0.49.0 // indirect
+	golang.org/x/text v0.43.0 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20261019180522-ce908d29299b // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20261019180522-ce908d29299b // indirect
+	google.golang.org/protobuf v1.36.12 // indirect
 )
