@@ -189,7 +189,7 @@ spec:
                   key: apiKey
     {{- if or $persistence.enabled $cacheDir }}
             - name: VLLM_CACHE_ROOT
-              value: {{ $cachePath }}
+              value: {{ $cachePath }}/.cache/vllm
     {{- end }}
           startupProbe:
             httpGet:
