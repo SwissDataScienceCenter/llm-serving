@@ -25,7 +25,7 @@ spec:
         autoscaling.knative.dev/maxScale: "{{ $model.maxScale | default 1 }}"
         autoscaling.knative.dev/timeout: "{{ $model.scaleDownDelaySeconds | default 3600 }}s"
         autoscaling.knative.dev/scale-to-zero-pod-retention-period: "{{ $model.scaleDownDelaySeconds | default 3600 }}s"
-        serving.knative.dev/progress-deadline: "1800s"
+        serving.knative.dev/progress-deadline: "{{$model.progressDeadline | default 1800}}s"
     spec:
       containers:
         - name: user-container
@@ -136,12 +136,12 @@ spec:
         autoscaling.knative.dev/maxScale: "{{ $model.maxScale | default 1 }}"
         autoscaling.knative.dev/timeout: "{{ $model.scaleDownDelaySeconds | default 3600 }}s"
         autoscaling.knative.dev/scale-to-zero-pod-retention-period: "{{ $model.scaleDownDelaySeconds | default 3600 }}s"
-        serving.knative.dev/progress-deadline: "1800s"
+        serving.knative.dev/progress-deadline: "{{ $model.progressDeadline | default 1800 }}s"
     spec:
       containers:
         - name: user-container
           image: "{{ $image.repository | default "vllm/vllm-openai" }}:{{ $image.tag | default "latest" }}"
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: {{ $image.imagePullPolicy | default "IfNotPresent" }}
     {{- if not $model.defaultCommand}}
           command:
             - python3
