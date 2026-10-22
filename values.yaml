@@ -83,6 +83,10 @@ openwebui:
 
 models: {}
 
+# Stable model names: alias -> key of `models` (not its fullName).
+modelAliases: {}
+  # sdsc-large: model-short-name
+
 initJob:
   image:
     repository: ghcr.io/swissdatasciencecenter/llm-serving/init
