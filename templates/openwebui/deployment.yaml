@@ -78,6 +78,8 @@ spec:
               value: "true"
             - name: ENABLE_OAUTH_ID_TOKEN_COOKIE
               value: "false"
+            - name: OAUTH_SCOPES
+              value: "openid email profile offline_access"
             - name: CORS_ALLOW_ORIGIN
               value: "https://openwebui.{{ .Values.envoy.baseDomain }}"
           startupProbe:
