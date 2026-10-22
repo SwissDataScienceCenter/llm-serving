@@ -181,7 +181,7 @@ spec:
             - name: DO_NOT_TRACK
               value: "1"
             - name: HOME
-              value: /myhome
+              value: {{ $cachePath }}
             - name: VLLM_API_KEY
               valueFrom:
                 secretKeyRef:
