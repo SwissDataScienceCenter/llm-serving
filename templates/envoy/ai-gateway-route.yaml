@@ -31,4 +31,19 @@ spec:
         - name: {{ include "model.fullname" (merge (dict "modelName" $name) $) }}
     {{- end }}
   {{- end }}
+  {{- /* The backend serves the target under its fullName, so the gateway rewrites the alias. */}}
+  {{- range $alias, $target := .Values.modelAliases }}
+    {{- $model := index $.Values.models $target | default dict }}
+    {{- if not (or $model.internal $model.apiUrl) }}
+      {{- fail (printf "modelAliases.%s: %q is not a routed model in .Values.models" $alias $target) }}
+    {{- end }}
+    - matches:
+        - headers:
+            - type: Exact
+              name: x-ai-eg-model
+              value: {{ $alias }}
+      backendRefs:
+        - name: {{ include "model.fullname" (merge (dict "modelName" $target) $) }}
+          modelNameOverride: {{ $model.fullName }}
+  {{- end }}
 {{- end }}
