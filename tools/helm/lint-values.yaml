@@ -30,3 +30,5 @@ models:
     <<: *model
     persistence: { enabled: false }
     cacheDir: { claimName: pvc-example-home }
+modelAliases:
+  lint-alias: lint
