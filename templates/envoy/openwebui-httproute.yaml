@@ -16,5 +16,7 @@ spec:
       - name: {{ include "openwebui.fullname" . }}
         namespace: {{ .Release.Namespace }}
         port: 8080
-  
+    # Envoy's default 15s route timeout cuts off slow requests, such as bulk knowledge base syncs.
+    timeouts:
+      request: 300s
 {{- end }}
