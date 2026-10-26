@@ -36,6 +36,9 @@ spec:
               value: "0.0.0.0"
             - name: VERBOSE
               value: "true"
+    {{- if $model.env }}
+            {{- toYaml $model.env | nindent 12 }}
+    {{- end }}
           startupProbe:
             httpGet:
               path: /health
@@ -190,6 +193,9 @@ spec:
     {{- if or $persistence.enabled $cacheDir }}
             - name: VLLM_CACHE_ROOT
               value: {{ $cachePath }}/.cache/vllm
+    {{- end }}
+    {{- if $model.env }}
+            {{- toYaml $model.env | nindent 12 }}
     {{- end }}
           startupProbe:
             httpGet:

@@ -22,6 +22,14 @@ models:
     internal: true
     apiKey: dummy
     persistence: { enabled: true } # renders models/pvc.yaml and the chart-owned claim
+    env: # exercises the custom env vars templated into knative-serving.yaml
+      - name: MODEL_CUSTOM_VAR
+        value: custom-value
+      - name: MODEL_SECRET_VAR
+        valueFrom:
+          secretKeyRef:
+            name: my-secret
+            key: my-key
     resources:
       requests: { cpu: 1, memory: 1G }
       limits: { cpu: 2, memory: 2G }

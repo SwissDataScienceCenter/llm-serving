@@ -77,6 +77,14 @@ models:
     chatTemplate: # if you want to use a custom chat template. Usually left empty. The template must exist in the docker image to work
       repository:
       tag:
+    env: # optional: extra environment variables to set on the model container.
+      - name: MY_VAR
+        value: my-value
+      - name: SECRET_VAR
+        valueFrom:
+          secretKeyRef:
+            name: my-secret
+            key: my-key
     resources: # the compute resources to request
       requests: # specifies typical usage requests
         cpu: 1
