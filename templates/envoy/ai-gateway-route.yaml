@@ -45,5 +45,8 @@ spec:
       backendRefs:
         - name: {{ include "model.fullname" (merge (dict "modelName" $target) $) }}
           modelNameOverride: {{ $model.fullName }}
+      # Avoids aborting long messages.
+      timeouts:
+        request: 300s
   {{- end }}
 {{- end }}
