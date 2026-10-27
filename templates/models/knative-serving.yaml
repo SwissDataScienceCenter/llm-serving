@@ -203,14 +203,14 @@ spec:
               port: 8000
             initialDelaySeconds: 60
             periodSeconds: 10
-            failureThreshold: 420
+            failureThreshold: {{ $model.startupProbeThreshold | default 420 }}
           readinessProbe:
             httpGet:
               path: /health
               port: 8000
             initialDelaySeconds: 60
             periodSeconds: 10
-            failureThreshold: 420
+            failureThreshold: {{ $model.readinessProbeThreshold | default 420 }}
           livenessProbe:
             httpGet:
               path: health
