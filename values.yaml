@@ -80,6 +80,26 @@ openwebui:
       memory: 4Gi
   tolerations: []
   affinity: {}
+  searxng:
+    enabled: false
+    image:
+      repository: searxng/searxng
+      tag: "2026.10.29-cff884f98"
+      pullPolicy: IfNotPresent
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    # 0 = off, 1 = moderate, 2 = strict
+    safeSearch: 0
+    resultCount: 3
+    concurrentRequests: 10
+    language: all
+    # Free-form YAML merged into settings.yml (e.g. engines, plugins).
+    extraSettings: {}
 
 models: {}
 

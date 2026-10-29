@@ -13,6 +13,13 @@ OpenWebUI full name.
 {{- end -}}
 
 {{/*
+SearXNG full name.
+*/}}
+{{- define "openwebui.searxng.fullname" -}}
+  {{- printf "%s-openwebui-searxng" .Release.Name -}}
+{{- end -}}
+
+{{/*
 
 Telemetry full name.
 */}}

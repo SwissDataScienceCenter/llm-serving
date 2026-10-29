@@ -82,6 +82,20 @@ spec:
               value: "openid email profile offline_access"
             - name: CORS_ALLOW_ORIGIN
               value: "https://openwebui.{{ .Values.envoy.baseDomain }}"
+  {{- if .Values.openwebui.searxng.enabled }}
+            - name: ENABLE_WEB_SEARCH
+              value: "true"
+            - name: WEB_SEARCH_ENGINE
+              value: "searxng"
+            - name: SEARXNG_QUERY_URL
+              value: http://{{ include "openwebui.searxng.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:8080/search
+            - name: WEB_SEARCH_RESULT_COUNT
+              value: {{ .Values.openwebui.searxng.resultCount | quote }}
+            - name: WEB_SEARCH_CONCURRENT_REQUESTS
+              value: {{ .Values.openwebui.searxng.concurrentRequests | quote }}
+            - name: SEARXNG_LANGUAGE
+              value: {{ .Values.openwebui.searxng.language | quote }}
+  {{- end }}
           startupProbe:
             httpGet:
               path: /health

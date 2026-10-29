@@ -1,0 +1,20 @@
+{{- if and .Values.openwebui.enabled .Values.openwebui.searxng.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "openwebui.searxng.fullname" . }}
+  labels:
+    app: searxng
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  selector:
+    app: searxng
+    release: {{ .Release.Name }}
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+      name: http
+  type: ClusterIP
+{{- end }}

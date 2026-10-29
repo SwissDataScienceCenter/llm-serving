@@ -16,6 +16,11 @@ openwebui:
     host: pg.example.invalid
     passwordSecret:
       name: dummy-pg
+  searxng:
+    enabled: true
+    extraSettings: # exercises the extraSettings passthrough into settings.yml
+      general:
+        instance_name: lint-searxng
 models:
   lint: &model
     fullName: org/lint-model
