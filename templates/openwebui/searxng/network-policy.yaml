@@ -1,0 +1,26 @@
+{{- if and .Values.openwebui.enabled .Values.openwebui.searxng.enabled }}
+# SearXNG is unauthenticated and internal-only: restrict ingress to the OpenWebUI pod.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "openwebui.searxng.fullname" . }}
+  labels:
+    app: searxng
+    release: {{ .Release.Name }}
+spec:
+  podSelector:
+    matchLabels:
+      app: searxng
+      release: {{ .Release.Name }}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: openwebui
+              release: {{ .Release.Name }}
+      ports:
+        - protocol: TCP
+          port: 8080
+{{- end }}

@@ -121,6 +121,19 @@ Newly added models stay private until an admin makes them public once, see
 
 A model that has scaled to zero takes a minute or two to answer the first message.
 
+### Optional: SearXNG web search
+
+To add web search to Open-WebUI, enable the bundled SearXNG metasearch backend:
+
+```yaml
+openwebui:
+  searxng:
+    enabled: true
+```
+
+The chart deploys an internal-only SearXNG instance (reachable only from the
+Open-WebUI pod) and turns web search on.
+
 ### API access
 
 The gateway at `https://gateway.<baseDomain>/v1` speaks the OpenAI API and takes an

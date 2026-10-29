@@ -1,0 +1,66 @@
+{{- if and .Values.openwebui.enabled .Values.openwebui.searxng.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "openwebui.searxng.fullname" . }}
+  labels:
+    app: searxng
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: searxng
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: searxng
+        release: {{ .Release.Name }}
+    spec:
+      # The image runs as root by default; drop to the bundled searxng user (977).
+      securityContext:
+        runAsUser: 977
+        runAsGroup: 977
+        fsGroup: 977
+        runAsNonRoot: true
+      containers:
+        - name: searxng
+          image: "{{ .Values.openwebui.searxng.image.repository }}:{{ .Values.openwebui.searxng.image.tag }}"
+          imagePullPolicy: {{ .Values.openwebui.searxng.image.pullPolicy }}
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          resources:
+            requests:
+              cpu: {{ .Values.openwebui.searxng.resources.requests.cpu | quote }}
+              memory: {{ .Values.openwebui.searxng.resources.requests.memory | quote }}
+            limits:
+              cpu: {{ .Values.openwebui.searxng.resources.limits.cpu | quote }}
+              memory: {{ .Values.openwebui.searxng.resources.limits.memory | quote }}
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            periodSeconds: 10
+          volumeMounts:
+            - name: settings
+              mountPath: /etc/searxng/settings.yml
+              subPath: settings.yml
+              readOnly: true
+  {{- if .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml .Values.global.imagePullSecrets | nindent 8 }}
+  {{- end }}
+      volumes:
+        - name: settings
+          secret:
+            secretName: {{ include "openwebui.searxng.fullname" . }}-settings
+{{- end }}
