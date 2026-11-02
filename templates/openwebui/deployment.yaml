@@ -82,20 +82,14 @@ spec:
               value: "openid email profile offline_access"
             - name: CORS_ALLOW_ORIGIN
               value: "https://openwebui.{{ .Values.envoy.baseDomain }}"
+  {{- with .Values.openwebui.startupProbe }}
           startupProbe:
-            httpGet:
-              path: /health
-              port: 8080
-            initialDelaySeconds: 30
-            periodSeconds: 5
-            failureThreshold: 20
+            {{- toYaml . | nindent 12 }}
+  {{- end }}
+  {{- with .Values.openwebui.livenessProbe }}
           livenessProbe:
-            httpGet:
-              path: /health
-              port: 8080
-            periodSeconds: 10
-            # Liveness should catch a deadlocked process, not one slow health check.
-            failureThreshold: 3
+            {{- toYaml . | nindent 12 }}
+  {{- end }}
           resources:
             requests:
               cpu: {{ .Values.openwebui.resources.requests.cpu | quote }}

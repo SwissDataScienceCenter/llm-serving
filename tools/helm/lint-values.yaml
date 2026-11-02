@@ -16,6 +16,8 @@ openwebui:
     host: pg.example.invalid
     passwordSecret:
       name: dummy-pg
+  livenessProbe: # exercises merging an override into the default probe
+    timeoutSeconds: 5
 models:
   lint: &model
     fullName: org/lint-model
