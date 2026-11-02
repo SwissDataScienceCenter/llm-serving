@@ -78,6 +78,21 @@ openwebui:
     limits:
       cpu: 1000m
       memory: 4Gi
+  # null drops the probe.
+  startupProbe:
+    httpGet:
+      path: /health
+      port: 8080
+    initialDelaySeconds: 30
+    periodSeconds: 5
+    failureThreshold: 20
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 8080
+    periodSeconds: 10
+    # Liveness should catch a deadlocked process, not one slow health check.
+    failureThreshold: 3
   tolerations: []
   affinity: {}
 
