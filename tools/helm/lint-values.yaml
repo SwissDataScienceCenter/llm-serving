@@ -18,6 +18,14 @@ openwebui:
       name: dummy-pg
   livenessProbe: # exercises merging an override into the default probe
     timeoutSeconds: 5
+  env: # exercises the custom env vars templated into the openwebui deployment
+    - name: OPENWEBUI_CUSTOM_VAR
+      value: custom-value
+    - name: OPENWEBUI_SECRET_VAR
+      valueFrom:
+        secretKeyRef:
+          name: my-secret
+          key: my-key
 models:
   lint: &model
     fullName: org/lint-model

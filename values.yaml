@@ -78,6 +78,8 @@ openwebui:
     limits:
       cpu: 1000m
       memory: 4Gi
+  # Extra environment variables for the openwebui container (same shape as `models[].env`).
+  env: []
   # null drops the probe.
   startupProbe:
     httpGet:

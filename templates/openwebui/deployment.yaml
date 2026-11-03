@@ -82,6 +82,9 @@ spec:
               value: "openid email profile offline_access"
             - name: CORS_ALLOW_ORIGIN
               value: "https://openwebui.{{ .Values.envoy.baseDomain }}"
+  {{- if .Values.openwebui.env }}
+            {{- toYaml .Values.openwebui.env | nindent 12 }}
+  {{- end }}
   {{- with .Values.openwebui.startupProbe }}
           startupProbe:
             {{- toYaml . | nindent 12 }}
