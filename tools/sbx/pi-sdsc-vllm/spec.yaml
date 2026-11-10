@@ -19,8 +19,7 @@ capabilities:
           - github.com:443
       runtime:
         allow:
-          - gateway.llm.sdsc.cscs.ch:443
-          - authentik.llm.sdsc.cscs.ch:443
+          - "*.llm.sdsc.cscs.ch:443"
   - type: com.docker.sandbox/lifecycle@1
     config:
       install:
