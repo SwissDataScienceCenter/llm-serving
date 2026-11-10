@@ -108,6 +108,17 @@ time models are changed.
 
 ## Usage
 
+### Agentic coding
+
+A plugin to connect is available to easily connect pi-agent to the CSCS deployment.
+This repository provides a [sbx template](tools/sbx/pi-sdsc-vllm/spec.yaml) to run it inside a [docker sbx sandbox](https://docs.docker.com/ai/sandboxes/).
+
+It should work out of the box with:
+
+```bash
+sbx run docker.io/sbx/pi:latest --kit "git+https://github.com/SwissDataScienceCenter/llm-serving#subdir=tools/sbx/pi-sdsc-vllm"
+```
+
 ### Web interface
 
 Open `https://openwebui.<baseDomain>` and sign in with the "authentik" button, which
