@@ -1,0 +1,29 @@
+# syntax=docker/sandbox-kit:3
+# Docker Sandboxes mixin: pi + the SDSC LLM gateway.
+# Usage (pass the directory, not this file):
+#   sbx run docker.io/sbx/pi:latest --kit "git+https://github.com/SwissDataScienceCenter/llm-serving#subdir=tools/sbx/pi-sdsc-vllm/"
+schemaVersion: "3"
+kind: mixin
+displayName: pi + SDSC LLM gateway
+description: >-
+  Installs the pi-sdsc-vllm extension and allows the SDSC vLLM gateway and its
+  Authentik login. Use on top of the pi workload (docker.io/sbx/pi).
+# Also orders our install hook after pi's own settings.json seed.
+requires: ["pi"]
+
+capabilities:
+  - type: com.docker.sandbox/network-policy@1
+    config:
+      install:
+        allow:
+          - github.com:443
+      runtime:
+        allow:
+          - "*.llm.sdsc.cscs.ch:443"
+  - type: com.docker.sandbox/lifecycle@1
+    config:
+      install:
+        - command: pi install git:github.com/SwissDataScienceCenter/pi-sdsc-vllm
+          user: agent
+          env: [HTTP_PROXY, HTTPS_PROXY]
+          description: Install the pi-sdsc-vllm extension
