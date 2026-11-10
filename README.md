@@ -116,6 +116,8 @@ This repository provides a [sbx template](tools/sbx/pi-sdsc-vllm/spec.yaml) to r
 It should work out of the box with:
 
 ```bash
+
+sbx settings set kit.allowedSources '["docker.io/","github.com/SwissDataScienceCenter/"]'
 sbx run docker.io/sbx/pi:latest --kit "git+https://github.com/SwissDataScienceCenter/llm-serving#dir=tools/sbx/pi-sdsc-vllm"
 ```
 
