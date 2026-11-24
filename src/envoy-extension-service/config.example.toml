@@ -1,0 +1,11 @@
+# Copy to config.toml and adjust. All values can be overridden by environment
+# variables (e.g. ENVOYEXT__GRPC__PORT, ENVOYEXT__OPENMETER__URL).
+
+[grpc]
+host = "0.0.0.0"
+port = "9002"
+
+[openmeter]
+url = ""
+feature_key = "llm_units"
+api_secret = ""
