@@ -29,6 +29,9 @@ spec:
               value: {{ $model.fullName }}
       backendRefs:
         - name: {{ include "model.fullname" (merge (dict "modelName" $name) $) }}
+      timeouts:
+        request: 300s
+        backendRequest: 300s
     {{- end }}
   {{- end }}
   {{- /* The backend serves the target under its fullName, so the gateway rewrites the alias. */}}
@@ -48,5 +51,6 @@ spec:
       # Avoids aborting long messages.
       timeouts:
         request: 300s
+        backendRequest: 300s
   {{- end }}
 {{- end }}
