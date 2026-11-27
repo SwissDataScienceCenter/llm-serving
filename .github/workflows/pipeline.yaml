@@ -30,6 +30,8 @@ jobs:
             context: src/init
           - name: otlp-bridge
             context: src/otlp-bridge
+          - name: envoy-extension-service
+            context: src/envoy-extension-service
     uses: ./.github/workflows/docker.yaml
     with:
       name: ${{ matrix.name }}
