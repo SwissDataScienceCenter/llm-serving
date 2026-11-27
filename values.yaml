@@ -17,28 +17,16 @@ envoy:
   resources:
   telemetry:
     enabled: false
-    # Lago API endpoint for event ingestion (required when telemetry is enabled)
-    lagoUrl: ""
-    # Billable metric code for ingested events (default: genai.tokens)
-    metricCode: ""
-    # Fixed Lago customer ID for all ingested events
-    customerId: ""
-    # Bearer token for authenticating with Lago (always required when telemetry is enabled)
-    bearerToken: ""
-    # OTLP receiver container settings
-    image:
-      repository: ghcr.io/swissdatasciencecenter/llm-serving/otlp-bridge
-      tag: "" # defaults to .Chart.AppVersion
-      pullPolicy: IfNotPresent
-    replicas: 1
-    resources:
-      requests:
-        cpu: 100m
-        memory: 128Mi
-      limits:
-        cpu: 500m
-        memory: 512Mi
 
+  metering:
+    image:
+      repository: ghcr.io/swissdatasciencecenter/sdsc-llm-deployment/envoy-extension-service
+      tag: latest
+      pullPolicy: IfNotPresent
+    openmeter:
+      url: http://openmeter-api.openmeter.svc.cluster.local:80
+      apiSecret: ""
+      featureKey: llm_usage
 global: {}
   # imagePullSecrets:
   # tolerations:

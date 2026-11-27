@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "envoy.fullname" . }}-extension-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "envoy.fullname" . }}-extension-service
+  template:
+    metadata:
+      labels:
+        app: {{ include "envoy.fullname" . }}-extension-service
+    spec:
+      containers:
+        - name: {{ include "envoy.fullname" . }}-extension-service
+          command:
+            - /envoy-extension-service
+          image: {{ .Values.envoy.metering.image.repository | default "ghcr.io/swissdatasciencecenter/sdsc-llm-deployment/envoy-extension-service" }}:{{ .Values.envoy.metering.image.tag | default "latest" }}
+          imagePullPolicy: {{ .Values.envoy.metering.image.pullPolicy | default "IfNotPresent"}}
+          env:
+            - name: ENVOYEXT__GRPC__HOST
+              value: "0.0.0.0"
+            - name: ENVOYEXT__GRPC__PORT
+              value: "9002"
+            - name: ENVOYEXT__OPENMETER__URL
+              value: {{ .Values.envoy.metering.openmeter.url | quote }}
+            - name: ENVOYEXT__OPENMETER__API_SECRET
+              value: {{ .Values.envoy.metering.openmeter.apiSecret | quote }}
+            - name: ENVOYEXT__OPENMETER__FEATURE_KEY
+              value: {{ .Values.envoy.metering.openmeter.featureKey | quote }}
+          ports:
+            - containerPort: 9002
+          readinessProbe:
+            grpc:
+              port: 9002
+            initialDelaySeconds: 10
+          livenesProbe:
+            grpc:
+              port: 9002
+            initialDelaySeconds: 10

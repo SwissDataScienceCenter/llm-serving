@@ -23,4 +23,6 @@ spec:
           header: x-sub
         - claim: name
           header: x-name
+        - claim: customer_id
+          header: x-customer-id
 {{- end }}
