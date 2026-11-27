@@ -5,7 +5,6 @@ metadata:
   name: {{ include "envoy.fullname" . }}
   namespace: {{ .Release.Namespace }}
 spec:
-  {{- if .Values.envoy.telemetry.enabled }}
   telemetry:
     accessLog:
       settings:
@@ -49,10 +48,11 @@ spec:
             - type: File
               file:
                 path: /dev/stdout
+  {{- if .Values.envoy.telemetry.enabled }}
             - type: OpenTelemetry
               openTelemetry:
                 port: 4317
-                host: "{{ include "telemetry.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local"
+                host: {{ .Values.envoy.telemetry.url | required ".Values.envoy.telemetry.url is required when telemetry is turned on" | quote }}
   {{- end }}
   {{- if or .Values.envoy.resources .Values.envoy.service }}
   provider:

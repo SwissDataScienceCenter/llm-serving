@@ -1,0 +1,15 @@
+set positional-arguments
+set shell := ["bash", "-cue"]
+
+# Format Go code.
+fmt:
+    gofmt -w .
+
+
+# Build the extension service binary.
+build:
+    go build -o bin/envoy-extension-service .
+
+# Run go vet.
+vet:
+    go vet ./...

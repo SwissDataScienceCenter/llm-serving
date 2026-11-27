@@ -156,6 +156,7 @@ spec:
             - {{ $model.contextLength | default 8192 | quote }}
             - --gpu-memory-utilization
             - {{ $model.gpuMemoryUtilization | default 0.9 | quote }}
+            - --enable-prompt-tokens-details
       {{- if $model.logRequests }}
             - --enable-log-requests
       {{- end }}
